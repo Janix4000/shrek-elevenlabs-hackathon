@@ -1,0 +1,159 @@
+ORDER 1:
+id: order-1
+charge_id: ch_001
+customer: John Smith
+product: Blue Wireless Headphones
+amount: 79.99
+currency: usd
+date: Nov 28, 2024
+shipping_address: 123 Main St, Chicago, IL 60601
+tracking: 1Z999AA10123456784
+carrier: USPS
+shipped_date: Dec 1, 2024
+delivery_date: Dec 3, 2024
+status: Delivered
+description: John Smith ordered Blue Wireless Headphones on November 28, 2024 for $79.99. Item shipped December 1 via USPS tracking 1Z999AA10123456784 and was delivered December 3, 2024 to 123 Main St, Chicago, IL.
+
+ORDER 2:
+id: order-2
+charge_id: ch_002
+customer: Sarah Johnson
+product: Standing Desk Pro
+amount: 299.99
+currency: usd
+date: Nov 15, 2024
+shipping_address: 456 Oak Ave, Austin, TX 78701
+tracking: 1Z999AA10123456785
+carrier: UPS
+shipped_date: Nov 17, 2024
+delivery_date: Nov 22, 2024
+status: Delivered
+description: Sarah Johnson ordered Standing Desk Pro on November 15, 2024 for $299.99. Item shipped November 17 via UPS tracking 1Z999AA10123456785 and was delivered November 22, 2024 to 456 Oak Ave, Austin, TX.
+
+ORDER 3:
+id: order-3
+charge_id: ch_003
+customer: Michael Chen
+product: Netflix Premium Subscription
+amount: 15.99
+currency: usd
+date: Dec 1, 2024
+shipping_address: N/A
+tracking: N/A
+carrier: N/A
+shipped_date: N/A
+delivery_date: N/A
+status: Active Subscription
+description: Michael Chen subscribed to Netflix Premium on December 1, 2024 for $15.99 monthly. This is a recurring monthly subscription that renews on the 1st of each month.
+
+ORDER 4:
+id: order-4
+charge_id: ch_004
+customer: Emily Rodriguez
+product: Yoga Mat Premium
+amount: 45.0
+currency: usd
+date: Nov 20, 2024
+shipping_address: 789 Pine St, Seattle, WA 98101
+tracking: 1Z999AA10123456786
+carrier: FedEx
+shipped_date: Nov 22, 2024
+delivery_date: Nov 25, 2024
+status: Delivered
+description: Emily Rodriguez ordered Yoga Mat Premium on November 20, 2024 for $45.00. Item shipped November 22 via FedEx tracking 1Z999AA10123456786 and was delivered November 25, 2024 to 789 Pine St, Seattle, WA.
+
+ORDER 5:
+id: order-5
+charge_id: ch_005
+customer: David Kim
+product: Mechanical Keyboard RGB
+amount: 129.99
+currency: usd
+date: Nov 25, 2024
+shipping_address: 321 Elm St, Boston, MA 02101
+tracking: 1Z999AA10123456787
+carrier: USPS
+shipped_date: Nov 27, 2024
+delivery_date: Pending
+status: In Transit
+description: David Kim ordered Mechanical Keyboard RGB on November 25, 2024 for $129.99. Item shipped November 27 via USPS tracking 1Z999AA10123456787 and is currently in transit to 321 Elm St, Boston, MA.
+
+ORDER 6:
+id: order-6
+charge_id: ch_006
+customer: Jessica Martinez
+product: Fitness Tracker Watch
+amount: 89.99
+currency: usd
+date: Nov 10, 2024
+shipping_address: 654 Maple Dr, Portland, OR 97201
+tracking: 1Z999AA10123456788
+carrier: UPS
+shipped_date: Nov 12, 2024
+delivery_date: Nov 16, 2024
+status: Delivered
+description: Jessica Martinez ordered Fitness Tracker Watch on November 10, 2024 for $89.99. Item shipped November 12 via UPS tracking 1Z999AA10123456788 and was delivered November 16, 2024 to 654 Maple Dr, Portland, OR.
+
+ORDER 7:
+id: order-7
+charge_id: ch_007
+customer: Robert Taylor
+product: Coffee Maker Deluxe
+amount: 159.99
+currency: usd
+date: Nov 18, 2024
+shipping_address: 987 Cedar Ln, Denver, CO 80201
+tracking: 1Z999AA10123456789
+carrier: FedEx
+shipped_date: Nov 20, 2024
+delivery_date: Nov 23, 2024
+status: Delivered
+description: Robert Taylor ordered Coffee Maker Deluxe on November 18, 2024 for $159.99. Item shipped November 20 via FedEx tracking 1Z999AA10123456789 and was delivered November 23, 2024 to 987 Cedar Ln, Denver, CO.
+
+ORDER 8:
+id: order-8
+charge_id: ch_008
+customer: Amanda White
+product: Spotify Premium Subscription
+amount: 10.99
+currency: usd
+date: Nov 1, 2024
+shipping_address: N/A
+tracking: N/A
+carrier: N/A
+shipped_date: N/A
+delivery_date: N/A
+status: Active Subscription
+description: Amanda White subscribed to Spotify Premium on November 1, 2024 for $10.99 monthly. This is a recurring monthly subscription that renews on the 1st of each month.
+
+ORDER 9:
+id: order-9
+charge_id: ch_009
+customer: Chris Anderson
+product: Laptop Backpack Pro
+amount: 69.99
+currency: usd
+date: Nov 22, 2024
+shipping_address: 147 Birch St, Miami, FL 33101
+tracking: 1Z999AA10123456790
+carrier: USPS
+shipped_date: Nov 24, 2024
+delivery_date: Nov 28, 2024
+status: Delivered
+description: Chris Anderson ordered Laptop Backpack Pro on November 22, 2024 for $69.99. Item shipped November 24 via USPS tracking 1Z999AA10123456790 and was delivered November 28, 2024 to 147 Birch St, Miami, FL.
+
+ORDER 10:
+id: order-10
+charge_id: ch_010
+customer: Lauren Harris
+product: Smart Home Hub
+amount: 119.99
+currency: usd
+date: Nov 12, 2024
+shipping_address: 258 Willow Rd, Phoenix, AZ 85001
+tracking: 1Z999AA10123456791
+carrier: UPS
+shipped_date: Nov 14, 2024
+delivery_date: Nov 18, 2024
+status: Delivered
+description: Lauren Harris ordered Smart Home Hub on November 12, 2024 for $119.99. Item shipped November 14 via UPS tracking 1Z999AA10123456791 and was delivered November 18, 2024 to 258 Willow Rd, Phoenix, AZ.

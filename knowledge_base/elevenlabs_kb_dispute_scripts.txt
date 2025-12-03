@@ -1,0 +1,34 @@
+SCRIPT 1:
+id: script-1
+dispute_reason: product_not_received
+content: Product not received response: First verify the shipping address with the customer. Then check the tracking status. If tracking shows delivered but customer didn't receive it, apologize and offer two options: send a replacement immediately at no cost, or issue a full refund right now. Say: 'I can send you a replacement that will ship today, or I can process a full refund immediately - which would you prefer?'
+
+SCRIPT 2:
+id: script-2
+dispute_reason: unrecognized
+content: Unrecognized charge response: Explain that our business appears on statements as 'TechShop LLC' or 'ChargebackShield Merchant Services' which may differ from our website name. Confirm the purchase date and product to help customer remember. Say: 'This charge is from [business name] for [product] ordered on [date]. Does that help clarify? I can also email you the receipt if that would help.'
+
+SCRIPT 3:
+id: script-3
+dispute_reason: fraudulent
+content: Fraudulent charge response: Take this seriously and verify the customer made the purchase. Confirm the shipping address, date, and product details. If customer confirms they didn't make the purchase, immediately offer a full refund and advise them to report to their bank. Say: 'I understand your concern. Let me verify - was this ordered to [address] on [date]? If you didn't make this purchase, I'll refund you immediately and you should also report this to your bank.'
+
+SCRIPT 4:
+id: script-4
+dispute_reason: general
+content: General dispute response: Start by asking what specific issue the customer is experiencing. Listen carefully and show empathy. Once you understand the issue, offer an immediate resolution. Common issues include delivery delays, product questions, or billing confusion. Say: 'I want to help resolve this for you right away. Can you tell me what happened so I can fix it immediately?'
+
+SCRIPT 5:
+id: script-5
+dispute_reason: product_not_as_described
+content: Product not as described response: Apologize that the product didn't meet expectations. Ask what specifically was different from the description. Offer three options: full refund with free return shipping, exchange for a different product, or partial refund to keep the item. Say: 'I'm sorry the product wasn't what you expected. I can offer you a full refund with free return shipping, exchange it for something else, or give you a partial refund if you'd like to keep it. What works best for you?'
+
+SCRIPT 6:
+id: script-6
+dispute_reason: subscription_not_canceled
+content: Subscription not canceled response: Apologize for the confusion about the subscription. Check when they last contacted us about cancellation. If there was a miscommunication, immediately cancel the subscription and offer a refund for the last charge. Say: 'I apologize for the confusion. I'm canceling your subscription right now, and I'll refund this month's charge. You won't see any future charges.'
+
+SCRIPT 7:
+id: script-7
+dispute_reason: duplicate_charge
+content: Duplicate charge response: Check the transaction history carefully. Often one charge is an authorization hold that will drop off. If truly duplicated, immediately refund the duplicate charge. Say: 'Let me check your transactions. I see [explain what happened]. If this is a duplicate charge, I'll refund it immediately. If one is an authorization hold, it will automatically drop off in 3-5 business days.'

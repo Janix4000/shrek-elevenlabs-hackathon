@@ -1,0 +1,24 @@
+CONFUSION 1:
+id: confusion-1
+type: business_name
+content: Business name confusion: Our company appears on credit card statements as 'TechShop LLC' or 'ChargebackShield Merchant' but our website is GadgetStore.com. Many customers don't recognize the legal business name on their statement.
+
+CONFUSION 2:
+id: confusion-2
+type: subscription_billing
+content: Subscription billing confusion: Monthly subscriptions renew automatically on the 1st of each month. Many customers forget they subscribed or don't realize it's recurring. We send email reminders 3 days before each charge.
+
+CONFUSION 3:
+id: confusion-3
+type: authorization_holds
+content: Authorization hold confusion: When customers place an order, they may see two charges - one is an authorization hold that drops off in 3-5 days, the other is the actual charge. This is not a duplicate charge, it's standard payment processing.
+
+CONFUSION 4:
+id: confusion-4
+type: delivery_timing
+content: Delivery timing confusion: Processing takes 2-3 business days, then shipping takes 5-7 business days. Total time is usually 7-10 business days. Weekends and holidays don't count as business days. International orders can take 2-3 weeks plus customs clearance time.
+
+CONFUSION 5:
+id: confusion-5
+type: tracking_updates
+content: Tracking update confusion: Tracking numbers can take 24-48 hours to show up in the carrier's system after we create the shipping label. If tracking shows no updates, the package hasn't been scanned yet, not that it's lost.
