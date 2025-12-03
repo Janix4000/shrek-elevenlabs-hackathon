@@ -12,6 +12,7 @@ from .conversation_manager import (
     TranscriptMessage,
     ConversationMetadata,
 )
+from .transcript_storage import TranscriptStorage
 
 __all__ = [
     "Agent",
@@ -24,4 +25,5 @@ __all__ = [
     "ConversationData",
     "TranscriptMessage",
     "ConversationMetadata",
+    "TranscriptStorage",
 ]

@@ -128,6 +128,7 @@ class PhoneCaller:
         poll_interval: int = 2,
         timeout: int | None = None,
         print_transcript: bool = True,
+        verbose: bool = False,
     ):
         """
         Make a call and wait for it to complete, then return the transcript.
@@ -166,7 +167,7 @@ class PhoneCaller:
             conversation_id=conversation_id,
             poll_interval=poll_interval,
             timeout=timeout,
-            verbose=True,
+            verbose=verbose,
         )
 
         # Print transcript if requested
