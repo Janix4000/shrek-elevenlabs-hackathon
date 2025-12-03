@@ -1,15 +1,15 @@
 """
 Test script for ElevenLabs conversation using custom client.
-Uses mock input and prints output to console.
+Uses microphone input and prints output to console.
 """
 
 import os
-import signal
 from dotenv import load_dotenv
 
-# Import our custom client
+# Import our custom client and agent
 from elevenlabs_wrapper.client import ElevenLabsClient
 from elevenlabs_wrapper.transcript_manager import TranscriptManager
+from elevenlabs_wrapper.agent import Agent
 
 load_dotenv()
 
@@ -19,24 +19,35 @@ def main():
     print("🎬 Starting ElevenLabs Conversation Test")
     print("=" * 60)
 
+    # Get agent ID
+    agent_id = os.getenv("AGENT_ID")
+    if not agent_id:
+        raise ValueError("AGENT_ID must be set in environment variables")
+
+    # Create agent configuration
+    agent = Agent(
+        agent_id=agent_id,
+        dynamic_variables={"product_name": "Shrek", "first_name": "Janek"},
+    )
+
+    # Optional: Set first message
+    # agent.set_first_message("Hello! How can I help you today?")
+
     # Create transcript manager to track conversation
     transcript_manager = TranscriptManager()
 
     # Initialize client
     client = ElevenLabsClient(transcript_manager=transcript_manager)
 
-    # Dynamic variables for the conversation
-    dynamic_variables = {"product_name": "Shrek", "first_name": "Janek"}
-
     print("\n📋 Configuration:")
-    print(f"  Agent ID: {client.agent_id}")
-    print(f"  Dynamic Variables: {dynamic_variables}")
+    print(f"  Agent ID: {agent.agent_id}")
+    print(f"  Dynamic Variables: {agent.dynamic_variables}")
     print("\n💬 Starting conversation...")
     print("   (Speak into your microphone, press Ctrl+C to end)\n")
 
     try:
         # Start conversation - this will block until ended
-        conversation_id = client.start_conversation(dynamic_variables)
+        conversation_id = client.start_conversation(agent)
 
         print("\n" + "=" * 60)
         print(f"✅ Conversation ended successfully")
