@@ -200,6 +200,10 @@ class ConversationManager:
         # Parse transcript messages
         transcript = []
         for msg in data.get("transcript", []):
+            # Skip messages with None content
+            if msg.get("message") is None:
+                continue
+
             transcript.append(
                 TranscriptMessage(
                     role=msg["role"],

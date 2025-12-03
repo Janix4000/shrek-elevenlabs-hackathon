@@ -2,16 +2,18 @@ import os
 import time
 import uuid
 import threading
+from pathlib import Path
 
 from dotenv import load_dotenv
 from conversation.models import (
     ConversationRequest,
     ConversationResult,
     ConversationStatus,
+    TranscriptEntry,
 )
-from elevenlabs_wrapper.client import ElevenLabsClient
-from elevenlabs_wrapper.transcript_manager import TranscriptManager
+from elevenlabs_wrapper.phone_caller import PhoneCaller
 from elevenlabs_wrapper.agent import Agent
+from elevenlabs_wrapper.transcript_storage import TranscriptStorage
 
 load_dotenv()
 
@@ -19,9 +21,10 @@ agent_id = os.getenv("AGENT_ID")
 
 
 class ConversationService:
-    def __init__(self):
+    def __init__(self, storage_dir: str = "transcripts"):
         self._conversations: dict[str, ConversationResult] = {}
         self._lock = threading.Lock()
+        self.storage = TranscriptStorage(storage_dir=storage_dir)
 
     def _create_dynamic_variables(self, request: ConversationRequest) -> dict[str, str]:
         return {
@@ -48,8 +51,8 @@ class ConversationService:
     ) -> None:
         if not agent_id:
             raise ValueError("AGENT_ID must be set in environment variables")
-        transcript_manager = TranscriptManager()
-        elevenlabs_client = ElevenLabsClient(transcript_manager=transcript_manager)
+
+        phone_caller = PhoneCaller()
 
         dynamic_variables = self._create_dynamic_variables(request)
         agent = Agent(
@@ -60,32 +63,48 @@ class ConversationService:
         start_time = time.time()
 
         try:
-            elevenlabs_conversation_id = elevenlabs_client.start_conversation(agent)
+            # Make phone call and wait for completion
+            conversation_data = phone_caller.make_call_and_wait(
+                agent=agent,
+                to_number=request.user_info.phone_number,
+                poll_interval=2,
+                timeout=600,  # 10 minute timeout
+                print_transcript=False,  # Don't print to console in background task
+            )
 
             end_time = time.time()
             duration = end_time - start_time
 
-            transcript = transcript_manager.get_transcript()
+            # Convert transcript to API format
+            transcript = [
+                TranscriptEntry(
+                    speaker=msg.role,  # "user" or "agent"
+                    text=msg.message,
+                    timestamp=msg.time_in_call_secs,
+                )
+                for msg in conversation_data.transcript
+            ]
+
+            # Save transcript to storage
+            self.storage.save_transcript(conversation_data, filename=conversation_id)
 
             with self._lock:
                 self._conversations[conversation_id] = ConversationResult(
                     conversation_id=conversation_id,
                     status=ConversationStatus.COMPLETED,
                     transcript=transcript,
-                    duration_seconds=duration,
+                    duration_seconds=conversation_data.metadata.call_duration_secs,
                 )
 
         except Exception as e:
             end_time = time.time()
             duration = end_time - start_time
 
-            transcript = transcript_manager.get_transcript()
-
             with self._lock:
                 self._conversations[conversation_id] = ConversationResult(
                     conversation_id=conversation_id,
                     status=ConversationStatus.FAILED,
-                    transcript=transcript if transcript else None,
+                    transcript=None,
                     duration_seconds=duration,
                     error=str(e),
                 )
@@ -95,3 +114,7 @@ class ConversationService:
     ) -> ConversationResult | None:
         with self._lock:
             return self._conversations.get(conversation_id)
+
+    def list_saved_transcripts(self) -> list[dict]:
+        """List all saved transcripts from storage."""
+        return self.storage.list_transcripts()

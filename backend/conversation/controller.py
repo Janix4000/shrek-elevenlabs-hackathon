@@ -1,4 +1,5 @@
 from fastapi import APIRouter, BackgroundTasks, HTTPException, status
+from typing import List
 from conversation.models import (
     ConversationRequest,
     ConversationStartResponse,
@@ -16,6 +17,10 @@ async def start_conversation(
     request: ConversationRequest,
     background_tasks: BackgroundTasks
 ) -> ConversationStartResponse:
+    """
+    Start a new phone conversation with the agent.
+    The call will be made in the background and you can check the status later.
+    """
     conversation_id = conversation_service.create_conversation(request)
 
     background_tasks.add_task(
@@ -32,6 +37,10 @@ async def start_conversation(
 
 @router.get("/{conversation_id}", response_model=ConversationResult)
 async def get_conversation_result(conversation_id: str) -> ConversationResult:
+    """
+    Get the result and transcript of a conversation.
+    Returns the current status and transcript if completed.
+    """
     result = conversation_service.get_conversation_result(conversation_id)
 
     if result is None:
@@ -41,3 +50,11 @@ async def get_conversation_result(conversation_id: str) -> ConversationResult:
         )
 
     return result
+
+
+@router.get("/", response_model=List[dict])
+async def list_saved_transcripts() -> List[dict]:
+    """
+    List all saved transcripts from the storage.
+    """
+    return conversation_service.list_saved_transcripts()
