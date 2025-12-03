@@ -7,7 +7,7 @@ from elevenlabs.conversational_ai.conversation import (
     ConversationInitiationData,
 )
 from elevenlabs.conversational_ai.default_audio_interface import DefaultAudioInterface
-from elevenlabs.transcript_manager import TranscriptManager
+from elevenlabs_wrapper.transcript_manager import TranscriptManager
 
 load_dotenv()
 
@@ -17,15 +17,19 @@ class ElevenLabsClient:
         self,
         api_key: str | None = None,
         agent_id: str | None = None,
-        transcript_manager: TranscriptManager | None = None
+        transcript_manager: TranscriptManager | None = None,
     ):
         self.api_key = api_key or os.getenv("ELEVENLABS_API_KEY")
         self.agent_id = agent_id or os.getenv("AGENT_ID")
 
         if not self.api_key:
-            raise ValueError("ELEVENLABS_API_KEY must be set in environment variables or passed to constructor.")
+            raise ValueError(
+                "ELEVENLABS_API_KEY must be set in environment variables or passed to constructor."
+            )
         if not self.agent_id:
-            raise ValueError("AGENT_ID must be set in environment variables or passed to constructor.")
+            raise ValueError(
+                "AGENT_ID must be set in environment variables or passed to constructor."
+            )
 
         self.elevenlabs = ElevenLabs(api_key=self.api_key)
         self.transcript_manager = transcript_manager or TranscriptManager()
@@ -33,6 +37,8 @@ class ElevenLabsClient:
 
     def start_conversation(self, dynamic_variables: dict) -> str:
         config = ConversationInitiationData(dynamic_variables=dynamic_variables)
+        if not self.agent_id:
+            raise ValueError("Agent ID must be set to start a conversation.")
 
         self.conversation = Conversation(
             self.elevenlabs,

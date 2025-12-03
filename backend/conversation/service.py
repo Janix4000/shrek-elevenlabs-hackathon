@@ -7,8 +7,8 @@ from conversation.models import (
     ConversationResult,
     ConversationStatus,
 )
-from elevenlabs.client import ElevenLabsClient
-from elevenlabs.transcript_manager import TranscriptManager
+from elevenlabs_wrapper.client import ElevenLabsClient
+from elevenlabs_wrapper.transcript_manager import TranscriptManager
 
 
 class ConversationService:
@@ -36,7 +36,9 @@ class ConversationService:
 
         return conversation_id
 
-    def run_conversation(self, conversation_id: str, request: ConversationRequest) -> None:
+    def run_conversation(
+        self, conversation_id: str, request: ConversationRequest
+    ) -> None:
         transcript_manager = TranscriptManager()
         elevenlabs_client = ElevenLabsClient(transcript_manager=transcript_manager)
 
@@ -45,7 +47,9 @@ class ConversationService:
         start_time = time.time()
 
         try:
-            elevenlabs_conversation_id = elevenlabs_client.start_conversation(dynamic_variables)
+            elevenlabs_conversation_id = elevenlabs_client.start_conversation(
+                dynamic_variables
+            )
 
             end_time = time.time()
             duration = end_time - start_time
@@ -72,9 +76,11 @@ class ConversationService:
                     status=ConversationStatus.FAILED,
                     transcript=transcript if transcript else None,
                     duration_seconds=duration,
-                    error=str(e)
+                    error=str(e),
                 )
 
-    def get_conversation_result(self, conversation_id: str) -> ConversationResult | None:
+    def get_conversation_result(
+        self, conversation_id: str
+    ) -> ConversationResult | None:
         with self._lock:
             return self._conversations.get(conversation_id)
