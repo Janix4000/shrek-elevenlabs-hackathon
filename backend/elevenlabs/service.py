@@ -1,3 +1,4 @@
+import asyncio
 import os
 import signal
 from uuid import UUID
@@ -6,7 +7,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from elevenlabs.client import ElevenLabs
-from elevenlabs.conversational_ai.conversation import Conversation
+from elevenlabs.conversational_ai.conversation import (
+    Conversation,
+    ClientTools,
+    ConversationInitiationData,
+)
 from elevenlabs.conversational_ai.default_audio_interface import DefaultAudioInterface
 
 agent_id = os.getenv("AGENT_ID")
@@ -20,8 +25,16 @@ if not api_key:
 def test():
     elevenlabs = ElevenLabs(api_key=api_key)
 
+    # Create ClientTools with custom loop to prevent "different event loop" errors
+
     if not agent_id:
         raise ValueError("AGENT_ID must be set in environment variables.")
+
+    async def end_conversation(params):
+        nonlocal conversation
+        conversation.end_session()
+
+    config = ConversationInitiationData(dynamic_variables={"product_name": "Shrek"})
 
     conversation = Conversation(
         # API client and agent ID.
@@ -39,6 +52,7 @@ def test():
         callback_user_transcript=lambda transcript: print(f"User: {transcript}"),
         # Uncomment if you want to see latency measurements.
         # callback_latency_measurement=lambda latency: print(f"Latency: {latency}ms"),
+        config=config,
     )
 
     conversation.start_session()  # optional field

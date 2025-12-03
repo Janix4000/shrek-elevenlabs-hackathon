@@ -1,0 +1,43 @@
+from fastapi import APIRouter, BackgroundTasks, HTTPException, status
+from conversation.models import (
+    ConversationRequest,
+    ConversationStartResponse,
+    ConversationResult,
+)
+from conversation.service import ConversationService
+
+router = APIRouter(prefix="/api/conversation", tags=["conversation"])
+
+conversation_service = ConversationService()
+
+
+@router.post("/start", response_model=ConversationStartResponse, status_code=status.HTTP_202_ACCEPTED)
+async def start_conversation(
+    request: ConversationRequest,
+    background_tasks: BackgroundTasks
+) -> ConversationStartResponse:
+    conversation_id = conversation_service.create_conversation(request)
+
+    background_tasks.add_task(
+        conversation_service.run_conversation,
+        conversation_id,
+        request
+    )
+
+    return ConversationStartResponse(
+        conversation_id=conversation_id,
+        status="started"
+    )
+
+
+@router.get("/{conversation_id}", response_model=ConversationResult)
+async def get_conversation_result(conversation_id: str) -> ConversationResult:
+    result = conversation_service.get_conversation_result(conversation_id)
+
+    if result is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Conversation with ID {conversation_id} not found"
+        )
+
+    return result
