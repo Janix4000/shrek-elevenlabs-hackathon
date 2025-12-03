@@ -3,3 +3,5 @@ uvicorn[standard]==0.24.0
 pydantic==2.5.0
 
 elevenlabs[pyaudio]==2.25.0
+
+anthropic

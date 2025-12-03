@@ -2,9 +2,11 @@ import os
 import time
 import uuid
 import threading
+import asyncio
 from pathlib import Path
 
 from dotenv import load_dotenv
+from anthropic import AsyncAnthropic
 from conversation.models import (
     ConversationRequest,
     ConversationResult,
@@ -14,10 +16,12 @@ from conversation.models import (
 from elevenlabs_wrapper.phone_caller import PhoneCaller
 from elevenlabs_wrapper.agent import Agent
 from elevenlabs_wrapper.transcript_storage import TranscriptStorage
+from elevenlabs_wrapper.transcript_summarizer import TranscriptSummarizer
 
 load_dotenv()
 
 agent_id = os.getenv("AGENT_ID")
+anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
 
 
 class ConversationService:
@@ -88,12 +92,29 @@ class ConversationService:
             # Save transcript to storage
             self.storage.save_transcript(conversation_data, filename=conversation_id)
 
+            # Generate summary using TranscriptSummarizer
+            summary = None
+            if anthropic_api_key:
+                try:
+                    summarizer = TranscriptSummarizer()
+                    anthropic_client = AsyncAnthropic(api_key=anthropic_api_key)
+                    summary = asyncio.run(
+                        summarizer.summarize(
+                            client=anthropic_client,
+                            transcript=conversation_data.transcript,
+                        )
+                    )
+                except Exception as e:
+                    # Log error but don't fail the whole conversation
+                    print(f"Warning: Failed to generate summary: {e}")
+
             with self._lock:
                 self._conversations[conversation_id] = ConversationResult(
                     conversation_id=conversation_id,
                     status=ConversationStatus.COMPLETED,
                     transcript=transcript,
                     duration_seconds=conversation_data.metadata.call_duration_secs,
+                    summary=summary,
                 )
 
         except Exception as e:
