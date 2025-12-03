@@ -70,19 +70,59 @@ agent = Agent(
 # Utwórz phone caller
 caller = PhoneCaller()
 
-# Wykonaj połączenie
-response = caller.make_call(
+# Opcja 1: Wykonaj połączenie i czekaj na zakończenie z transkryptem
+conversation_data = caller.make_call_and_wait(
     agent=agent,
-    to_number="+1234567890"
+    to_number="+1234567890",
+    poll_interval=2,  # Sprawdzaj co 2 sekundy
+    timeout=300,  # Timeout 5 minut
+    print_transcript=True  # Automatycznie wypisz transkrypt
 )
 
-print(f"Call SID: {response.call_sid}")
-print(f"Conversation ID: {response.conversation_id}")
+# Dostęp do transkryptu
+for msg in conversation_data.transcript:
+    print(f"[{msg.time_in_call_secs}s] {msg.role}: {msg.message}")
+
+# Opcja 2: Tylko wykonaj połączenie (bez czekania)
+response = caller.make_call(agent=agent, to_number="+1234567890")
+print(f"Call initiated: {response.conversation_id}")
+
+# Później pobierz transkrypt
+conversation_data = caller.get_conversation_transcript(response.conversation_id)
+```
+
+### ConversationManager
+
+Manager do pobierania i monitorowania zakończonych konwersacji:
+
+```python
+from elevenlabs_wrapper import ConversationManager
+
+manager = ConversationManager(api_key="your_api_key")
+
+# Pobierz konwersację po ID
+conversation_data = manager.get_conversation("conversation_id")
+
+# Wypisz transkrypt
+manager.print_transcript(conversation_data)
+
+# Czekaj na zakończenie konwersacji (polling)
+conversation_data = manager.wait_for_completion(
+    conversation_id="conversation_id",
+    poll_interval=2,
+    timeout=300,
+    verbose=True
+)
+
+# Lista wszystkich konwersacji
+result = manager.list_conversations(agent_id="your_agent_id", page_size=10)
+for conv in result['conversations']:
+    print(f"{conv['conversation_id']}: {conv['call_duration_secs']}s")
 ```
 
 ### TranscriptManager
 
-Manager do śledzenia transkrypcji rozmów:
+Manager do śledzenia transkrypcji rozmów lokalnych (real-time):
 
 ```python
 from elevenlabs_wrapper import TranscriptManager

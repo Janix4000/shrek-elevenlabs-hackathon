@@ -46,13 +46,39 @@ def main():
     try:
         # Initialize phone caller and make the call
         caller = PhoneCaller()
-        response = caller.make_call(agent=agent, to_number=to_number)
+
+        # Option 1: Make call and wait for completion with transcript
+        conversation_data = caller.make_call_and_wait(
+            agent=agent,
+            to_number=to_number,
+            poll_interval=2,  # Check every 2 seconds
+            timeout=300,  # 5 minute timeout
+            print_transcript=True,  # Auto-print transcript when done
+        )
 
         print("\n" + "=" * 60)
         print("✅ Call completed successfully!")
         print("=" * 60)
         print(f"\n📊 Call Details:")
-        print(f"   Response: {response}")
+        print(f"   Conversation ID: {conversation_data.conversation_id}")
+        print(f"   Duration: {conversation_data.metadata.call_duration_secs}s")
+        print(f"   Messages: {len(conversation_data.transcript)}")
+        print(f"   Cost: {conversation_data.metadata.cost}")
+
+        # Print full transcript
+        print("\n" + "=" * 60)
+        print("📝 Full Transcript:")
+        print("=" * 60)
+        for i, msg in enumerate(conversation_data.transcript, 1):
+            emoji = "👤" if msg.role == "user" else "🤖"
+            time_str = f"[{msg.time_in_call_secs:.1f}s]"
+            print(f"\n{i}. {emoji} {msg.role.upper()} {time_str}")
+            print(f"   {msg.message}")
+        print("\n" + "=" * 60)
+
+        # Option 2: Just make the call without waiting
+        # response = caller.make_call(agent=agent, to_number=to_number)
+        # print(f"Call initiated: {response.conversation_id}")
 
     except Exception as e:
         print(f"\n❌ Error: {e}")

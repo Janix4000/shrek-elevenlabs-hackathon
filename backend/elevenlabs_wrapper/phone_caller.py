@@ -6,6 +6,7 @@ import os
 from dotenv import load_dotenv
 from elevenlabs.client import ElevenLabs
 from .agent import Agent
+from .conversation_manager import ConversationManager
 
 load_dotenv()
 
@@ -34,6 +35,7 @@ class PhoneCaller:
             )
 
         self.client = ElevenLabs(api_key=self.api_key)
+        self.conversation_manager = ConversationManager(api_key=self.api_key)
 
     def make_call(self, agent: Agent, to_number: str):
         """
@@ -118,3 +120,69 @@ class PhoneCaller:
             to_number=to_number,
             conversation_initiation_client_data=conversation_data,  # type: ignore
         )
+
+    def make_call_and_wait(
+        self,
+        agent: Agent,
+        to_number: str,
+        poll_interval: int = 2,
+        timeout: int | None = None,
+        print_transcript: bool = True,
+    ):
+        """
+        Make a call and wait for it to complete, then return the transcript.
+
+        Args:
+            agent: Agent configuration with all customization options
+            to_number: Phone number to call (format: +1234567890)
+            poll_interval: Seconds between status checks (default: 2)
+            timeout: Maximum seconds to wait (default: None = no timeout)
+            print_transcript: Whether to print the transcript when done (default: True)
+
+        Returns:
+            ConversationData with complete transcript
+
+        Raises:
+            TimeoutError: If timeout is reached before completion
+            Exception: If the call fails
+        """
+        # Make the call
+        response = self.make_call(agent, to_number)
+
+        # Extract conversation_id
+        conversation_id = None
+        if hasattr(response, "conversation_id"):
+            conversation_id = response.conversation_id
+        elif isinstance(response, dict):
+            conversation_id = response.get("conversation_id")
+
+        if not conversation_id:
+            raise ValueError("Could not extract conversation_id from response")
+
+        print(f"\n⏳ Waiting for call to complete...")
+
+        # Wait for completion
+        conversation_data = self.conversation_manager.wait_for_completion(
+            conversation_id=conversation_id,
+            poll_interval=poll_interval,
+            timeout=timeout,
+            verbose=True,
+        )
+
+        # Print transcript if requested
+        if print_transcript:
+            self.conversation_manager.print_transcript(conversation_data)
+
+        return conversation_data
+
+    def get_conversation_transcript(self, conversation_id: str):
+        """
+        Get the transcript of a completed conversation.
+
+        Args:
+            conversation_id: The conversation ID
+
+        Returns:
+            ConversationData with transcript
+        """
+        return self.conversation_manager.get_conversation(conversation_id)
