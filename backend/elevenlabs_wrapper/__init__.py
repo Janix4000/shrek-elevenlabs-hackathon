@@ -6,6 +6,12 @@ from .agent import Agent, AgentConfigOverride, AgentPromptOverride
 from .client import ElevenLabsClient
 from .phone_caller import PhoneCaller
 from .transcript_manager import TranscriptManager
+from .conversation_manager import (
+    ConversationManager,
+    ConversationData,
+    TranscriptMessage,
+    ConversationMetadata,
+)
 
 __all__ = [
     "Agent",
@@ -14,4 +20,8 @@ __all__ = [
     "ElevenLabsClient",
     "PhoneCaller",
     "TranscriptManager",
+    "ConversationManager",
+    "ConversationData",
+    "TranscriptMessage",
+    "ConversationMetadata",
 ]
