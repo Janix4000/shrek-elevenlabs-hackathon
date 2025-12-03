@@ -1,0 +1,63 @@
+"""
+Test script for making outbound phone calls using ElevenLabs agent.
+"""
+import os
+from dotenv import load_dotenv
+from elevenlabs_wrapper.agent import Agent
+from elevenlabs_wrapper.phone_caller import PhoneCaller
+
+load_dotenv()
+
+
+def main():
+    print("=" * 60)
+    print("📞 ElevenLabs Phone Call Test")
+    print("=" * 60)
+
+    # Get phone number to call
+    to_number = os.getenv("TEST_PHONE_NUMBER")
+    if not to_number:
+        to_number = input("\n📱 Enter phone number to call (format: +1234567890): ")
+
+    # Create agent configuration
+    agent_id = os.getenv("AGENT_ID")
+    if not agent_id:
+        raise ValueError("AGENT_ID must be set in environment variables")
+
+    agent = Agent(
+        agent_id=agent_id,
+        dynamic_variables={
+            "product_name": "Shrek",
+            "first_name": "Janek",
+        },
+    )
+
+    # Optional: Set first message
+    # agent.set_first_message("Hello! I'm calling from Shrek. How can I help you today?")
+
+    # Optional: Set language
+    # agent.set_language("en")
+
+    print(f"\n📋 Agent Configuration:")
+    print(f"   Agent ID: {agent.agent_id}")
+    print(f"   Dynamic Variables: {agent.dynamic_variables}")
+    print(f"\n📞 Calling {to_number}...")
+
+    try:
+        # Initialize phone caller and make the call
+        caller = PhoneCaller()
+        response = caller.make_call(agent=agent, to_number=to_number)
+
+        print("\n" + "=" * 60)
+        print("✅ Call completed successfully!")
+        print("=" * 60)
+        print(f"\n📊 Call Details:")
+        print(f"   Response: {response}")
+
+    except Exception as e:
+        print(f"\n❌ Error: {e}")
+        raise
+
+
+if __name__ == "__main__":
+    main()

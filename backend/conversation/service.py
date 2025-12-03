@@ -1,7 +1,9 @@
+import os
 import time
 import uuid
 import threading
-from typing import Dict
+
+from dotenv import load_dotenv
 from conversation.models import (
     ConversationRequest,
     ConversationResult,
@@ -9,14 +11,19 @@ from conversation.models import (
 )
 from elevenlabs_wrapper.client import ElevenLabsClient
 from elevenlabs_wrapper.transcript_manager import TranscriptManager
+from elevenlabs_wrapper.agent import Agent
+
+load_dotenv()
+
+agent_id = os.getenv("AGENT_ID")
 
 
 class ConversationService:
     def __init__(self):
-        self._conversations: Dict[str, ConversationResult] = {}
+        self._conversations: dict[str, ConversationResult] = {}
         self._lock = threading.Lock()
 
-    def _create_dynamic_variables(self, request: ConversationRequest) -> Dict[str, str]:
+    def _create_dynamic_variables(self, request: ConversationRequest) -> dict[str, str]:
         return {
             "first_name": request.user_info.first_name,
             "last_name": request.user_info.last_name,
@@ -39,17 +46,21 @@ class ConversationService:
     def run_conversation(
         self, conversation_id: str, request: ConversationRequest
     ) -> None:
+        if not agent_id:
+            raise ValueError("AGENT_ID must be set in environment variables")
         transcript_manager = TranscriptManager()
         elevenlabs_client = ElevenLabsClient(transcript_manager=transcript_manager)
 
         dynamic_variables = self._create_dynamic_variables(request)
+        agent = Agent(
+            agent_id=agent_id,
+            dynamic_variables=dynamic_variables,
+        )
 
         start_time = time.time()
 
         try:
-            elevenlabs_conversation_id = elevenlabs_client.start_conversation(
-                dynamic_variables
-            )
+            elevenlabs_conversation_id = elevenlabs_client.start_conversation(agent)
 
             end_time = time.time()
             duration = end_time - start_time
