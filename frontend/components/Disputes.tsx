@@ -430,6 +430,140 @@ const Disputes: React.FC<DisputesProps> = ({ disputes }) => {
                    </div>
                  )}
 
+                 {/* Mock Transcript for disputes without chargeId */}
+                 {!selectedDispute.chargeId && (
+                   <div className="space-y-4">
+                     <h3 className="text-xs font-black uppercase text-slate-500 tracking-widest flex items-center gap-2">
+                       <div className="w-1 h-4 bg-gradient-to-b from-green-500 to-emerald-500 rounded-full"></div>
+                       Previous Conversation
+                     </h3>
+
+                     {/* Status Badge */}
+                     <div className="px-4 py-2 rounded-xl text-sm font-bold inline-block bg-emerald-100 text-emerald-700">
+                       Completed
+                     </div>
+
+                     {/* Mock Transcript */}
+                     <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-2xl p-5 border border-slate-200 shadow-sm">
+                       <div className="space-y-3 max-h-96 overflow-y-auto">
+                         <p className="text-indigo-700 font-bold bg-indigo-50 px-3 py-2 rounded-lg border border-indigo-100">
+                           <span className="text-xs uppercase tracking-wider mr-2">Agent:</span>
+                           Hello, this is Sarah from customer service. I'm calling about your recent chargeback request.
+                         </p>
+                         <p className="text-slate-700 font-medium bg-green-50 px-3 py-2 rounded-lg border border-green-100">
+                           <span className="text-xs uppercase tracking-wider mr-2">Customer:</span>
+                           Hi Sarah, yes I disputed that charge because I wasn't satisfied with the service.
+                         </p>
+                         <p className="text-indigo-700 font-bold bg-indigo-50 px-3 py-2 rounded-lg border border-indigo-100">
+                           <span className="text-xs uppercase tracking-wider mr-2">Agent:</span>
+                           I understand your concern. I've reviewed your account and I can see you've been with us for over a year. Can you tell me more about what happened?
+                         </p>
+                         <p className="text-slate-700 font-medium bg-green-50 px-3 py-2 rounded-lg border border-green-100">
+                           <span className="text-xs uppercase tracking-wider mr-2">Customer:</span>
+                           Well, I expected more features for the price I'm paying. I feel like I'm not getting enough value.
+                         </p>
+                         <p className="text-indigo-700 font-bold bg-indigo-50 px-3 py-2 rounded-lg border border-indigo-100">
+                           <span className="text-xs uppercase tracking-wider mr-2">Agent:</span>
+                           I appreciate your feedback. Let me show you some features you might not be aware of. We recently added premium analytics and priority support to your plan at no extra cost.
+                         </p>
+                         <p className="text-slate-700 font-medium bg-green-50 px-3 py-2 rounded-lg border border-green-100">
+                           <span className="text-xs uppercase tracking-wider mr-2">Customer:</span>
+                           Oh, I didn't know about those features. That does sound more valuable.
+                         </p>
+                         <p className="text-indigo-700 font-bold bg-indigo-50 px-3 py-2 rounded-lg border border-indigo-100">
+                           <span className="text-xs uppercase tracking-wider mr-2">Agent:</span>
+                           I'd be happy to walk you through them. Would you like to continue your subscription and I can help you get set up?
+                         </p>
+                         <p className="text-slate-700 font-medium bg-green-50 px-3 py-2 rounded-lg border border-green-100">
+                           <span className="text-xs uppercase tracking-wider mr-2">Customer:</span>
+                           Yes, that would be great. I'll withdraw the chargeback.
+                         </p>
+                       </div>
+                     </div>
+
+                     {/* Summary */}
+                     <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                       <h4 className="text-xs font-black uppercase text-blue-900 tracking-widest mb-2">Summary</h4>
+                       <p className="text-sm text-blue-800 font-medium">Customer agreed to continue subscription after learning about premium features. Chargeback withdrawn successfully.</p>
+                     </div>
+
+                     {/* Mock Evidence Result */}
+                     <div className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-2xl p-5 shadow-lg">
+                       <h4 className="text-xs font-black uppercase text-purple-900 tracking-widest mb-4 flex items-center gap-2">
+                         <Sparkles size={16} className="text-purple-600" />
+                         AI Dispute Evaluation
+                       </h4>
+
+                       <div className="space-y-3">
+                         {/* Resolution Status */}
+                         <div className="flex items-center justify-between bg-white/70 rounded-lg p-3 border border-purple-100">
+                           <span className="text-sm font-bold text-slate-700">Resolved:</span>
+                           <span className="px-3 py-1 rounded-lg text-xs font-black bg-emerald-100 text-emerald-700">
+                             YES
+                           </span>
+                         </div>
+
+                         {/* Resolution Type */}
+                         <div className="flex items-center justify-between bg-white/70 rounded-lg p-3 border border-purple-100">
+                           <span className="text-sm font-bold text-slate-700">Resolution Type:</span>
+                           <span className="text-sm font-bold text-purple-700 uppercase">
+                             RENEWED
+                           </span>
+                         </div>
+
+                         {/* Confidence */}
+                         <div className="bg-white/70 rounded-lg p-3 border border-purple-100">
+                           <div className="flex items-center justify-between mb-2">
+                             <span className="text-sm font-bold text-slate-700">Confidence:</span>
+                             <span className="text-sm font-black text-purple-700">
+                               95%
+                             </span>
+                           </div>
+                           <div className="h-2 bg-purple-100 rounded-full overflow-hidden">
+                             <div
+                               className="h-full bg-gradient-to-r from-purple-500 to-pink-500"
+                               style={{width: '95%'}}
+                             ></div>
+                           </div>
+                         </div>
+
+                         {/* Reasoning */}
+                         <div className="bg-white/70 rounded-lg p-3 border border-purple-100">
+                           <span className="text-xs font-black uppercase text-slate-500 block mb-1">Reasoning:</span>
+                           <p className="text-sm text-slate-700 font-medium leading-relaxed">
+                             Customer explicitly agreed to withdraw chargeback after understanding full service value. Strong evidence of resolution through education and feature demonstration.
+                           </p>
+                         </div>
+
+                         {/* Evidence Fields */}
+                         <div className="bg-white/70 rounded-lg p-3 border border-purple-100">
+                           <span className="text-xs font-black uppercase text-slate-500 block mb-2">Evidence Submitted:</span>
+                           <div className="flex flex-wrap gap-2">
+                             <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-bold">
+                               cancellation rebuttal
+                             </span>
+                             <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-bold">
+                               product description
+                             </span>
+                             <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-bold">
+                               customer communication
+                             </span>
+                             <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-bold">
+                               service date
+                             </span>
+                           </div>
+                         </div>
+
+                         {/* Stripe Status */}
+                         <div className="flex items-center gap-2 text-xs text-slate-600 font-medium">
+                           <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                           Evidence submitted to Stripe
+                         </div>
+                       </div>
+                     </div>
+                   </div>
+                 )}
+
                  {/* Enhanced RAG Pipeline with Modern Gradients */}
                  {isAnalyzing && (
                    <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border-2 border-indigo-200 rounded-2xl p-6 shadow-lg">
