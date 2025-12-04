@@ -144,7 +144,7 @@ def main():
     # CONFIGURATION - Edit these values for your use case
     # ============================================================================
 
-    CHARGE_ID = "ch_3SaQFuAITa6PCFHj0dnBlMJP"  # Stripe charge ID with dispute
+    CHARGE_ID = "ch_3SaWSKAITa6PCFHj01QZKwuK"  # Stripe charge ID with dispute (FRESH - created just now!)
     DISPUTE_REASON = "subscription_canceled"     # Dispute reason
     FAKE_CALL = False  # Set to True for 5-second test, False for real call
 
