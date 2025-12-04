@@ -1,0 +1,37 @@
+[
+  {
+    "id": "policy-1",
+    "type": "refund_policy",
+    "content": "Refund policy: We offer full refunds within 30 days of purchase, no questions asked. Refunds are processed within 5-7 business days back to the original payment method."
+  },
+  {
+    "id": "policy-2",
+    "type": "shipping_policy",
+    "content": "Shipping policy: All orders are processed within 2-3 business days. Standard shipping takes 5-7 business days. We ship via USPS, UPS, or FedEx depending on location and product."
+  },
+  {
+    "id": "policy-3",
+    "type": "item_not_received",
+    "content": "Item not received policy: If an item is not delivered within 14 days of the estimated delivery date, we will either reship the item at no cost or issue a full refund immediately, customer's choice."
+  },
+  {
+    "id": "policy-4",
+    "type": "subscription_policy",
+    "content": "Subscription cancellation policy: Customers can cancel subscriptions at any time. Cancellations take effect immediately and we issue a prorated refund for the remaining billing period."
+  },
+  {
+    "id": "policy-5",
+    "type": "defective_product",
+    "content": "Defective product policy: For defective items under $100, we send a replacement without requiring a return. For items over $100, we provide a prepaid return label. All replacements ship within 24 hours of report."
+  },
+  {
+    "id": "policy-6",
+    "type": "return_policy",
+    "content": "Return policy: 30-day return window for all physical products. No restocking fees on standard items. Custom or personalized items have a 15% restocking fee. Digital products and subscriptions are non-refundable after access is granted."
+  },
+  {
+    "id": "policy-7",
+    "type": "warranty",
+    "content": "Warranty policy: All electronics come with a 1-year manufacturer warranty covering defects. We facilitate all warranty claims and provide replacements while claims are processed."
+  }
+]

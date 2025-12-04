@@ -1,11 +1,14 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
+from conversation.controller import router as conversation_router
 
 app = FastAPI(
     title="Shrek ElevenLabs Hackathon API",
-    description="A basic FastAPI template for the Shrek ElevenLabs Hackathon",
+    description="API for AI-powered chargeback conversation agent using ElevenLabs",
     version="1.0.0"
 )
+
+app.include_router(conversation_router)
 
 
 class HealthResponse(BaseModel):
@@ -21,7 +24,11 @@ async def root():
     return {
         "message": "Welcome to Shrek ElevenLabs Hackathon API",
         "docs": "/docs",
-        "health": "/health"
+        "health": "/health",
+        "endpoints": {
+            "start_conversation": "POST /api/conversation/start",
+            "get_conversation_result": "GET /api/conversation/{conversation_id}"
+        }
     }
 
 

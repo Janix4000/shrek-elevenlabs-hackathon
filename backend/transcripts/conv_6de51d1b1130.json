@@ -1,0 +1,65 @@
+{
+  "conversation_id": "conv_2801kbk5j0j4eybrkx41emg1h06q",
+  "agent_id": "agent_4001kbjgs5wpf4tt50fc5qxxem3w",
+  "status": "done",
+  "user_id": null,
+  "transcript_summary": "Ethan contacted the user regarding a chargeback request for their Shrek Premium subscription, which is not a valid cancellation method. The user chose to renew the subscription instead of canceling it. Ethan confirmed the renewal and ended the call.\n",
+  "metadata": {
+    "start_time_unix_secs": 1764801191,
+    "call_duration_secs": 51,
+    "cost": 340,
+    "termination_reason": "end_call tool was called."
+  },
+  "transcript": [
+    {
+      "role": "agent",
+      "message": "Hello. I'm Ethan, calling about your recent chargeback request for the subscription of  Shrek Premium.",
+      "time_in_call_secs": 0,
+      "tool_calls": [],
+      "tool_results": []
+    },
+    {
+      "role": "user",
+      "message": "Hello, what can I do?",
+      "time_in_call_secs": 7,
+      "tool_calls": [],
+      "tool_results": []
+    },
+    {
+      "role": "agent",
+      "message": "I need to inform you that a chargeback is not recognized as a valid method for canceling your Shrek Premium subscription. That action will not be accepted.",
+      "time_in_call_secs": 11,
+      "tool_calls": [],
+      "tool_results": []
+    },
+    {
+      "role": "user",
+      "message": "Hello, shall I do anything with that?",
+      "time_in_call_secs": 21,
+      "tool_calls": [],
+      "tool_results": []
+    },
+    {
+      "role": "agent",
+      "message": "You have two options to resolve this. We can proceed with an official cancellation of your Shrek Premium subscription according to the terms, or you can choose to renew it.",
+      "time_in_call_secs": 25,
+      "tool_calls": [],
+      "tool_results": []
+    },
+    {
+      "role": "user",
+      "message": "I think I can renew it. I think it was a mistake to cancel it by a chargeback.",
+      "time_in_call_secs": 35,
+      "tool_calls": [],
+      "tool_results": []
+    },
+    {
+      "role": "agent",
+      "message": "Thank you for clarifying. We will proceed with the renewal of your Shrek Premium subscription. Have a good day.",
+      "time_in_call_secs": 43,
+      "tool_calls": [],
+      "tool_results": []
+    }
+  ],
+  "saved_at": "2025-12-03T23:34:05.041655"
+}
