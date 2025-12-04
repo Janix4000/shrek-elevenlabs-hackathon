@@ -83,7 +83,7 @@ const Disputes: React.FC<DisputesProps> = ({ disputes }) => {
       // Start the conversation
       const startResponse = await conversationService.startConversation(
         selectedDispute.chargeId,
-        true, // Use fake_conv=true for testing
+        false, // Use fake_conv=false for production
         updateStripe // Use checkbox value for update_stripe
       );
 
@@ -161,8 +161,8 @@ const Disputes: React.FC<DisputesProps> = ({ disputes }) => {
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${activeTab === tab
-                  ? 'bg-gradient-to-r from-slate-900 to-slate-700 text-white shadow-lg shadow-slate-900/25 scale-105'
-                  : 'bg-white border border-slate-200 text-slate-600 hover:border-slate-300 hover:shadow-md hover:scale-102'
+                ? 'bg-gradient-to-r from-slate-900 to-slate-700 text-white shadow-lg shadow-slate-900/25 scale-105'
+                : 'bg-white border border-slate-200 text-slate-600 hover:border-slate-300 hover:shadow-md hover:scale-102'
                 }`}
             >
               {tab}
@@ -217,12 +217,12 @@ const Disputes: React.FC<DisputesProps> = ({ disputes }) => {
                 </td>
                 <td className="px-6 py-5">
                   <span className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider inline-block ${dispute.status === DisputeStatus.ActionRequired
-                      ? 'bg-amber-100 text-amber-700'
-                      : dispute.status === DisputeStatus.Won
-                        ? 'bg-emerald-100 text-emerald-700'
-                        : dispute.status === DisputeStatus.Lost
-                          ? 'bg-red-100 text-red-700'
-                          : 'bg-indigo-100 text-indigo-700'
+                    ? 'bg-amber-100 text-amber-700'
+                    : dispute.status === DisputeStatus.Won
+                      ? 'bg-emerald-100 text-emerald-700'
+                      : dispute.status === DisputeStatus.Lost
+                        ? 'bg-red-100 text-red-700'
+                        : 'bg-indigo-100 text-indigo-700'
                     }`}>
                     {dispute.status}
                   </span>
@@ -274,8 +274,8 @@ const Disputes: React.FC<DisputesProps> = ({ disputes }) => {
                       onClick={handleCallCustomer}
                       disabled={isCallingCustomer || !!conversationResult}
                       className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all ${isCallingCustomer || conversationResult
-                          ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                          : 'bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700 shadow-lg shadow-green-500/30 hover:scale-105'
+                        ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                        : 'bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700 shadow-lg shadow-green-500/30 hover:scale-105'
                         }`}
                     >
                       <Phone size={18} />
@@ -301,44 +301,17 @@ const Disputes: React.FC<DisputesProps> = ({ disputes }) => {
 
                   {/* Status Badge */}
                   <div className={`px-4 py-2 rounded-xl text-sm font-bold inline-block ${conversationResult.status === ConversationStatus.IN_PROGRESS
-                      ? 'bg-amber-100 text-amber-700'
-                      : conversationResult.status === ConversationStatus.COMPLETED
-                        ? 'bg-emerald-100 text-emerald-700'
-                        : 'bg-red-100 text-red-700'
+                    ? 'bg-amber-100 text-amber-700'
+                    : conversationResult.status === ConversationStatus.COMPLETED
+                      ? 'bg-emerald-100 text-emerald-700'
+                      : 'bg-red-100 text-red-700'
                     }`}>
                     {conversationResult.status === ConversationStatus.IN_PROGRESS && 'In Progress...'}
                     {conversationResult.status === ConversationStatus.COMPLETED && 'Completed'}
                     {conversationResult.status === ConversationStatus.FAILED && 'Failed'}
                   </div>
 
-                  {/* Live Transcript */}
-                  {conversationResult.transcript && conversationResult.transcript.length > 0 && (
-                    <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-2xl p-5 border border-slate-200 shadow-sm">
-                      <div className="space-y-3 max-h-96 overflow-y-auto">
-                        {conversationResult.transcript.map((entry, i) => (
-                          <p key={i} className={entry.speaker === 'agent'
-                            ? 'text-indigo-700 font-bold bg-indigo-50 px-3 py-2 rounded-lg border border-indigo-100'
-                            : 'text-slate-700 font-medium bg-green-50 px-3 py-2 rounded-lg border border-green-100'
-                          }>
-                            <span className="text-xs uppercase tracking-wider mr-2">
-                              {entry.speaker === 'agent' ? 'Agent' : 'Customer'}:
-                            </span>
-                            {entry.text}
-                          </p>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Summary */}
-                  {conversationResult.summary && (
-                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                      <h4 className="text-xs font-black uppercase text-blue-900 tracking-widest mb-2">Summary</h4>
-                      <p className="text-sm text-blue-800 font-medium">{conversationResult.summary}</p>
-                    </div>
-                  )}
-
-                  {/* Evidence Result */}
+                  {/* Evidence Result - MOVED TO TOP */}
                   {conversationResult.evidence_result && (
                     <div className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-2xl p-5 shadow-lg">
                       <h4 className="text-xs font-black uppercase text-purple-900 tracking-widest mb-4 flex items-center gap-2">
@@ -351,8 +324,8 @@ const Disputes: React.FC<DisputesProps> = ({ disputes }) => {
                         <div className="flex items-center justify-between bg-white/70 rounded-lg p-3 border border-purple-100">
                           <span className="text-sm font-bold text-slate-700">Resolved:</span>
                           <span className={`px-3 py-1 rounded-lg text-xs font-black ${conversationResult.evidence_result.evaluation.resolved
-                              ? 'bg-emerald-100 text-emerald-700'
-                              : 'bg-red-100 text-red-700'
+                            ? 'bg-emerald-100 text-emerald-700'
+                            : 'bg-red-100 text-red-700'
                             }`}>
                             {conversationResult.evidence_result.evaluation.resolved ? 'YES' : 'NO'}
                           </span>
@@ -417,6 +390,34 @@ const Disputes: React.FC<DisputesProps> = ({ disputes }) => {
                             : 'Test mode - not submitted to Stripe'}
                         </div>
                       </div>
+                    </div>
+                  )}
+
+                  {/* Live Transcript - MOVED AFTER EVIDENCE */}
+                  {conversationResult.transcript && conversationResult.transcript.length > 0 && (
+                    <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-2xl p-5 border border-slate-200 shadow-sm">
+                      <h4 className="text-xs font-black uppercase text-slate-700 tracking-widest mb-3">Conversation Transcript</h4>
+                      <div className="space-y-3 max-h-96 overflow-y-auto">
+                        {conversationResult.transcript.map((entry, i) => (
+                          <p key={i} className={entry.speaker === 'agent'
+                            ? 'text-indigo-700 font-bold bg-indigo-50 px-3 py-2 rounded-lg border border-indigo-100'
+                            : 'text-slate-700 font-medium bg-green-50 px-3 py-2 rounded-lg border border-green-100'
+                          }>
+                            <span className="text-xs uppercase tracking-wider mr-2">
+                              {entry.speaker === 'agent' ? 'Agent' : 'Customer'}:
+                            </span>
+                            {entry.text}
+                          </p>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Summary - MOVED AFTER TRANSCRIPT */}
+                  {conversationResult.summary && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                      <h4 className="text-xs font-black uppercase text-blue-900 tracking-widest mb-2">Summary</h4>
+                      <p className="text-sm text-blue-800 font-medium">{conversationResult.summary}</p>
                     </div>
                   )}
 
@@ -754,8 +755,8 @@ const Disputes: React.FC<DisputesProps> = ({ disputes }) => {
                 </button>
                 <button
                   className={`flex-1 py-3 font-bold text-sm rounded-xl transition-all ${uploadedFiles.length > 0
-                      ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:scale-105'
-                      : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                    ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:scale-105'
+                    : 'bg-slate-200 text-slate-400 cursor-not-allowed'
                     }`}
                   disabled={uploadedFiles.length === 0}
                 >
