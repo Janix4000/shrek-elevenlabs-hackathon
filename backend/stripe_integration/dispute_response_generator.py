@@ -71,7 +71,7 @@ Format: Simple numbered list, nothing more, nothing less. No introduction, no co
 
         # Call Claude API
         message = self.anthropic_client.messages.create(
-            model="claude-sonnet-4-5",
+            model="claude-sonnet-4-20250514",
             max_tokens=2000,
             messages=[
                 {"role": "user", "content": prompt}
