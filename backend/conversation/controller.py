@@ -23,13 +23,15 @@ async def start_conversation(
     The call will be made in the background and you can check the status later.
 
     For testing, use ?fake_conv=true to simulate a conversation without making a real phone call.
+
+    Request body only requires the Stripe charge_id - all other information
+    (customer details, product info, etc.) will be fetched automatically from Stripe.
     """
-    conversation_id = conversation_service.create_conversation(request)
+    conversation_id = conversation_service.create_conversation(request.charge_id)
 
     background_tasks.add_task(
         conversation_service.run_conversation,
         conversation_id,
-        request,
         fake_conv
     )
 

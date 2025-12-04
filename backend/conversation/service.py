@@ -34,18 +34,16 @@ anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
 class ConversationService:
     def __init__(self, storage_dir: str = "transcripts"):
         self._conversations: dict[str, ConversationResult] = {}
+        self._charge_ids: dict[str, str] = {}  # Maps conversation_id -> charge_id
         self._lock = threading.Lock()
         self.storage = TranscriptStorage(storage_dir=storage_dir)
         self.rag_service = RAGService()
         self.dispute_response_generator = DisputeResponseGenerator()
 
     def _create_fake_conversation(
-        self, request: ConversationRequest
+        self, product_name: str, first_name: str, reason: str
     ) -> ConversationData:
         """Create a fake conversation for testing purposes."""
-        product_name = request.chargeback_info.product_name
-        first_name = request.user_info.first_name
-        reason = request.chargeback_info.reason
 
         mock_transcript = [
             TranscriptMessage(
@@ -100,7 +98,7 @@ class ConversationService:
             metadata=mock_metadata,
         )
 
-    def create_conversation(self, request: ConversationRequest) -> str:
+    def create_conversation(self, charge_id: str) -> str:
         conversation_id = f"conv_{uuid.uuid4().hex[:12]}"
 
         with self._lock:
@@ -108,28 +106,39 @@ class ConversationService:
                 conversation_id=conversation_id,
                 status=ConversationStatus.IN_PROGRESS,
             )
+            self._charge_ids[conversation_id] = charge_id
 
         return conversation_id
 
     def run_conversation(
         self,
         conversation_id: str,
-        request: ConversationRequest,
         fake_conv: bool = False,
     ) -> None:
         if not agent_id:
             raise ValueError("AGENT_ID must be set in environment variables")
 
+        # Get charge_id from the stored mapping
+        with self._lock:
+            charge_id = self._charge_ids.get(conversation_id)
+
+        if not charge_id:
+            raise ValueError(f"No charge_id found for conversation {conversation_id}")
+
         phone_caller = PhoneCaller()
 
         # Fetch comprehensive charge details from Stripe
-        print(f"💳 Fetching Stripe charge details: {request.chargeback_info.charge_id}")
-        charge_details = self.dispute_response_generator.get_charge_details(request.chargeback_info.charge_id)
+        print(f"💳 Fetching Stripe charge details: {charge_id}")
+        charge_details = self.dispute_response_generator.get_charge_details(charge_id)
 
         # Generate AI-powered response arguments
-        response_arguments, phone_number, name = self.dispute_response_generator.generate_dispute_response(
-            request.chargeback_info.charge_id
+        response_arguments, phone_number, name = (
+            self.dispute_response_generator.generate_dispute_response(charge_id)
         )
+
+        if os.getenv("TEST_PHONE_NUMBER"):
+            phone_number = os.getenv("TEST_PHONE_NUMBER")
+            print(f"Using TEST_PHONE_NUMBER override: {phone_number}")
 
         # Extract product and customer information from Stripe
         product_info = charge_details["product_info"]
@@ -141,10 +150,13 @@ class ConversationService:
         print(f"   - Product: {product_info['name']}")
         print(f"   - Amount: ${charge_info['amount']:.2f}")
 
+        # Get dispute reason from charge details (if available, otherwise use generic)
+        dispute_reason = charge_details.get("dispute_reason", "subscription_canceled")
+
         # Query RAG for relevant context before making the call
-        print(f"🔍 Querying RAG for: {request.chargeback_info.reason} - {product_info['name']}")
+        print(f"🔍 Querying RAG for: {dispute_reason} - {product_info['name']}")
         rag_context = self.rag_service.query_context(
-            chargeback_reason=request.chargeback_info.reason,
+            chargeback_reason=dispute_reason,
             product_name=product_info["name"],  # Use actual product name from Stripe
             customer_name=customer_info["name"],  # Use actual customer name from Stripe
             top_k=10,  # Get top 10 most relevant results
@@ -164,12 +176,16 @@ class ConversationService:
         # Create dynamic variables with actual Stripe data
         dynamic_variables = {
             "first_name": customer_info["name"].split(" ")[0],
-            "last_name": customer_info["name"].split(" ")[-1] if len(customer_info["name"].split(" ")) > 1 else "",
+            "last_name": (
+                customer_info["name"].split(" ")[-1]
+                if len(customer_info["name"].split(" ")) > 1
+                else ""
+            ),
             "phone_number": phone_number,
             "product_name": product_info["name"],
             "product_description": product_info["description"],
             "product_code": product_info["code"],
-            "chargeback_reason": request.chargeback_info.reason,
+            "chargeback_reason": dispute_reason,
             "charge_amount": f"${charge_info['amount']:.2f}",
             "charge_date": charge_info["date"],
         }
@@ -201,7 +217,7 @@ PRODUCT & CHARGE DETAILS:
 - Category: {product_info["category"]}
 - Charge Amount: ${charge_info["amount"]:.2f} {charge_info["currency"]}
 - Charge Date: {charge_info["date"]}
-- Dispute Reason: {request.chargeback_info.reason}
+- Dispute Reason: {dispute_reason}
 
 RELEVANT KNOWLEDGE BASE:
 {context_string}
@@ -220,7 +236,11 @@ Note: Use the above information to support your procedural guidance. The evidenc
                 # Use fake conversation for testing
                 print(f"🎭 Starting fake conversation (5 second delay)...")
                 time.sleep(5)  # Simulate conversation delay
-                conversation_data = self._create_fake_conversation(request)
+                conversation_data = self._create_fake_conversation(
+                    product_name=product_info["name"],
+                    first_name=customer_info["name"].split(" ")[0],
+                    reason=dispute_reason,
+                )
                 print(f"✅ Fake conversation completed")
             else:
                 # Make real phone call and wait for completion
@@ -238,7 +258,9 @@ Note: Use the above information to support your procedural guidance. The evidenc
             # Convert transcript to API format
             transcript = [
                 TranscriptEntry(
-                    speaker=msg.role,  # "user" or "agent"
+                    speaker=(
+                        msg.role if msg.role in ("user", "agent") else "agent"
+                    ),  # Ensure valid literal type
                     text=msg.message,
                     timestamp=msg.time_in_call_secs,
                 )

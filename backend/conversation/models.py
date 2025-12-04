@@ -30,6 +30,29 @@ class ChargebackInfo(BaseModel):
 
 
 class ConversationRequest(BaseModel):
+    """Request to start a conversation - only requires the Stripe charge ID."""
+    charge_id: str = Field(..., min_length=1, description="Stripe charge ID (e.g., ch_xxxxx)")
+
+    @field_validator("charge_id")
+    @classmethod
+    def validate_not_empty(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError("charge_id cannot be empty or whitespace only")
+        return v.strip()
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "charge_id": "ch_3SaQFuAITa6PCFHj0dnBlMJP"
+                }
+            ]
+        }
+    }
+
+
+class ConversationRequestLegacy(BaseModel):
+    """Legacy request format - kept for backwards compatibility."""
     user_info: UserInfo
     chargeback_info: ChargebackInfo
 
