@@ -13,6 +13,7 @@ from .conversation_manager import (
     ConversationMetadata,
 )
 from .transcript_storage import TranscriptStorage
+from .transcript_summarizer import TranscriptSummarizer
 
 __all__ = [
     "Agent",
@@ -26,4 +27,5 @@ __all__ = [
     "TranscriptMessage",
     "ConversationMetadata",
     "TranscriptStorage",
+    "TranscriptSummarizer",
 ]
