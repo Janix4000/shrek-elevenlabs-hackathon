@@ -11,6 +11,8 @@ from conversation.models import (
     ConversationResult,
     ConversationStatus,
     TranscriptEntry,
+    EvidenceResult,
+    DisputeEvaluation,
 )
 from elevenlabs_wrapper.phone_caller import PhoneCaller
 from elevenlabs_wrapper.agent import Agent, AgentPromptOverride, AgentConfigOverride
@@ -292,6 +294,7 @@ Note: Use the above information to support your procedural guidance. The evidenc
 
             # Evaluate transcript and submit evidence to Stripe
             print("\n🔍 Evaluating transcript and submitting evidence to Stripe...")
+            evidence_result_data = None
             try:
                 # Convert transcript to format expected by DisputeEvaluator
                 evaluator_transcript = [
@@ -304,22 +307,43 @@ Note: Use the above information to support your procedural guidance. The evidenc
                 ]
 
                 # Submit evidence immediately to Stripe
-                evidence_result = self.dispute_evaluator.submit_evidence_to_stripe(
+                evidence_dict = self.dispute_evaluator.submit_evidence_to_stripe(
                     charge_id=charge_id,
                     transcript=evaluator_transcript,
                     submit_immediately=True,  # Submit to bank immediately
+                    send_to_stripe=not fake_conv,  # Actually send to Stripe
                 )
 
                 print("✅ Evidence submitted successfully!")
-                print(f"   - Dispute ID: {evidence_result['dispute_id']}")
-                print(f"   - Resolved: {evidence_result['evaluation']['resolved']}")
+                print(f"   - Dispute ID: {evidence_dict['dispute_id']}")
+                print(f"   - Resolved: {evidence_dict['evaluation']['resolved']}")
                 print(
-                    f"   - Resolution Type: {evidence_result['evaluation']['resolution_type']}"
+                    f"   - Resolution Type: {evidence_dict['evaluation']['resolution_type']}"
                 )
                 print(
-                    f"   - Evidence Fields: {len(evidence_result['evidence_generated'])}"
+                    f"   - Evidence Fields: {len(evidence_dict.get('evidence_generated', {}))}"
                 )
-                print(f"   - Status: {evidence_result['status']}")
+                print(f"   - Status: {evidence_dict['status']}")
+
+                # Convert evidence_generated to dict if it's a list
+                evidence_generated = evidence_dict.get('evidence_generated', {})
+                if isinstance(evidence_generated, list):
+                    # If it's a list of field names, convert to dict with empty values
+                    evidence_generated = {field: "" for field in evidence_generated}
+
+                # Convert to Pydantic model
+                evidence_result_data = EvidenceResult(
+                    dispute_id=evidence_dict['dispute_id'],
+                    evaluation=DisputeEvaluation(
+                        resolved=evidence_dict['evaluation']['resolved'],
+                        resolution_type=evidence_dict['evaluation'].get('resolution_type'),
+                        confidence=evidence_dict['evaluation'].get('confidence'),
+                        reasoning=evidence_dict['evaluation'].get('reasoning')
+                    ),
+                    evidence_generated=evidence_generated,
+                    status=evidence_dict['status'],
+                    submitted_to_stripe=not fake_conv
+                )
             except Exception as e:
                 # Log error but don't fail the whole conversation
                 print(f"⚠️  Warning: Failed to submit evidence to Stripe: {e}")
@@ -334,6 +358,7 @@ Note: Use the above information to support your procedural guidance. The evidenc
                     transcript=transcript,
                     duration_seconds=conversation_data.metadata.call_duration_secs,
                     summary=summary,
+                    evidence_result=evidence_result_data,
                 )
 
         except Exception as e:

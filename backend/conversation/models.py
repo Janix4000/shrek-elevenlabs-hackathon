@@ -78,12 +78,30 @@ class ConversationStatus(str, Enum):
     FAILED = "failed"
 
 
+class DisputeEvaluation(BaseModel):
+    """Evaluation of the conversation outcome."""
+    resolved: bool = Field(..., description="Whether the dispute was resolved")
+    resolution_type: Optional[str] = Field(None, description="Type of resolution (e.g., 'renewed', 'canceled', 'partial_refund')")
+    confidence: Optional[float] = Field(None, description="Confidence score of the evaluation")
+    reasoning: Optional[str] = Field(None, description="Reasoning behind the evaluation")
+
+
+class EvidenceResult(BaseModel):
+    """Result of evidence generation and submission."""
+    dispute_id: str = Field(..., description="Stripe dispute ID")
+    evaluation: DisputeEvaluation
+    evidence_generated: dict = Field(..., description="Generated evidence fields")
+    status: str = Field(..., description="Submission status")
+    submitted_to_stripe: bool = Field(..., description="Whether evidence was actually submitted to Stripe")
+
+
 class ConversationResult(BaseModel):
     conversation_id: str
     status: ConversationStatus
     transcript: Optional[List[TranscriptEntry]] = None
     duration_seconds: Optional[float] = None
     summary: Optional[str] = None
+    evidence_result: Optional[EvidenceResult] = None
     error: Optional[str] = None
 
     model_config = {
@@ -105,6 +123,22 @@ class ConversationResult(BaseModel):
                         },
                     ],
                     "duration_seconds": 120.5,
+                    "summary": "Customer agreed to renew subscription.",
+                    "evidence_result": {
+                        "dispute_id": "du_1234567890",
+                        "evaluation": {
+                            "resolved": True,
+                            "resolution_type": "renewed",
+                            "confidence": 0.95,
+                            "reasoning": "Customer explicitly agreed to renew"
+                        },
+                        "evidence_generated": {
+                            "cancellation_rebuttal": "...",
+                            "product_description": "..."
+                        },
+                        "status": "submitted",
+                        "submitted_to_stripe": True
+                    },
                     "error": None,
                 }
             ]
