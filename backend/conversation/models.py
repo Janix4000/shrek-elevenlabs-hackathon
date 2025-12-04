@@ -17,7 +17,9 @@ class UserInfo(BaseModel):
 
 
 class ChargebackInfo(BaseModel):
-    charge_id: str = Field(..., min_length=1, description="Stripe charge ID (e.g., ch_xxxxx)")
+    charge_id: str = Field(
+        ..., min_length=1, description="Stripe charge ID (e.g., ch_xxxxx)"
+    )
     product_name: str = Field(..., min_length=1, description="Name of the product")
     reason: str = Field(..., min_length=1, description="Reason for chargeback")
 
@@ -29,32 +31,15 @@ class ChargebackInfo(BaseModel):
         return v.strip()
 
 
-class ConversationRequest(BaseModel):
-    """Request to start a conversation - only requires the Stripe charge ID."""
-    charge_id: str = Field(..., min_length=1, description="Stripe charge ID (e.g., ch_xxxxx)")
-
-    @field_validator("charge_id")
-    @classmethod
-    def validate_not_empty(cls, v: str) -> str:
-        if not v or not v.strip():
-            raise ValueError("charge_id cannot be empty or whitespace only")
-        return v.strip()
-
-    model_config = {
-        "json_schema_extra": {
-            "examples": [
-                {
-                    "charge_id": "ch_3SaQFuAITa6PCFHj0dnBlMJP"
-                }
-            ]
-        }
-    }
-
-
 class ConversationRequestLegacy(BaseModel):
     """Legacy request format - kept for backwards compatibility."""
-    user_info: UserInfo
-    chargeback_info: ChargebackInfo
+
+    user_info: Optional[UserInfo] = (
+        None  # Optional - will be fetched from Stripe if not provided
+    )
+    charge_id: str = Field(
+        ..., min_length=1, description="Stripe charge ID (e.g., ch_xxxxx)"
+    )
 
     model_config = {
         "json_schema_extra": {
@@ -63,13 +48,9 @@ class ConversationRequestLegacy(BaseModel):
                     "user_info": {
                         "first_name": "John",
                         "last_name": "Doe",
-                        "phone_number": "+1234567890"
+                        "phone_number": "+1234567890",
                     },
-                    "chargeback_info": {
-                        "charge_id": "ch_3SaQFuAITa6PCFHj0dnBlMJP",
-                        "product_name": "Shrek Premium Subscription",
-                        "reason": "Unauthorized charge"
-                    }
+                    "charge_id": "ch_3SaQFuAITa6PCFHj0dnBlMJP",
                 }
             ]
         }
@@ -77,14 +58,18 @@ class ConversationRequestLegacy(BaseModel):
 
 
 class ConversationStartResponse(BaseModel):
-    conversation_id: str = Field(..., description="Unique ID to track this conversation")
+    conversation_id: str = Field(
+        ..., description="Unique ID to track this conversation"
+    )
     status: Literal["started"] = "started"
 
 
 class TranscriptEntry(BaseModel):
     speaker: Literal["agent", "user"]
     text: str
-    timestamp: float = Field(..., description="Timestamp in seconds from conversation start")
+    timestamp: float = Field(
+        ..., description="Timestamp in seconds from conversation start"
+    )
 
 
 class ConversationStatus(str, Enum):
@@ -111,16 +96,16 @@ class ConversationResult(BaseModel):
                         {
                             "speaker": "agent",
                             "text": "Hello, this is regarding your recent chargeback.",
-                            "timestamp": 0.0
+                            "timestamp": 0.0,
                         },
                         {
                             "speaker": "user",
                             "text": "Yes, I'd like to discuss that.",
-                            "timestamp": 2.5
-                        }
+                            "timestamp": 2.5,
+                        },
                     ],
                     "duration_seconds": 120.5,
-                    "error": None
+                    "error": None,
                 }
             ]
         }

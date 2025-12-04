@@ -8,7 +8,6 @@ from pathlib import Path
 from dotenv import load_dotenv
 from anthropic import AsyncAnthropic
 from conversation.models import (
-    ConversationRequest,
     ConversationResult,
     ConversationStatus,
     TranscriptEntry,
@@ -24,6 +23,7 @@ from elevenlabs_wrapper.conversation_manager import (
 )
 from rag_service import RAGService
 from stripe_integration.dispute_response_generator import DisputeResponseGenerator
+from stripe_integration.dispute_evaluator import DisputeEvaluator
 
 load_dotenv()
 
@@ -39,6 +39,7 @@ class ConversationService:
         self.storage = TranscriptStorage(storage_dir=storage_dir)
         self.rag_service = RAGService()
         self.dispute_response_generator = DisputeResponseGenerator()
+        self.dispute_evaluator = DisputeEvaluator()
 
     def _create_fake_conversation(
         self, product_name: str, first_name: str, reason: str
@@ -136,9 +137,11 @@ class ConversationService:
             self.dispute_response_generator.generate_dispute_response(charge_id)
         )
 
-        if os.getenv("TEST_PHONE_NUMBER"):
-            phone_number = os.getenv("TEST_PHONE_NUMBER")
-            print(f"Using TEST_PHONE_NUMBER override: {phone_number}")
+        # Check for phone number override from environment
+        phone_number_override = os.getenv("PHONE_NUMBER_OVERRIDE")
+        if phone_number_override:
+            print(f"📞 Using phone number override from .env: {phone_number_override}")
+            phone_number = phone_number_override
 
         # Extract product and customer information from Stripe
         product_info = charge_details["product_info"]
@@ -149,6 +152,7 @@ class ConversationService:
         print(f"   - Customer: {customer_info['name']}")
         print(f"   - Product: {product_info['name']}")
         print(f"   - Amount: ${charge_info['amount']:.2f}")
+        print(f"   - Phone: {phone_number}")
 
         # Get dispute reason from charge details (if available, otherwise use generic)
         dispute_reason = charge_details.get("dispute_reason", "subscription_canceled")
@@ -285,6 +289,43 @@ Note: Use the above information to support your procedural guidance. The evidenc
                 except Exception as e:
                     # Log error but don't fail the whole conversation
                     print(f"Warning: Failed to generate summary: {e}")
+
+            # Evaluate transcript and submit evidence to Stripe
+            print("\n🔍 Evaluating transcript and submitting evidence to Stripe...")
+            try:
+                # Convert transcript to format expected by DisputeEvaluator
+                evaluator_transcript = [
+                    {
+                        "role": msg.role,
+                        "message": msg.message,
+                        "time_in_call_secs": msg.time_in_call_secs,
+                    }
+                    for msg in conversation_data.transcript
+                ]
+
+                # Submit evidence immediately to Stripe
+                evidence_result = self.dispute_evaluator.submit_evidence_to_stripe(
+                    charge_id=charge_id,
+                    transcript=evaluator_transcript,
+                    submit_immediately=True,  # Submit to bank immediately
+                )
+
+                print("✅ Evidence submitted successfully!")
+                print(f"   - Dispute ID: {evidence_result['dispute_id']}")
+                print(f"   - Resolved: {evidence_result['evaluation']['resolved']}")
+                print(
+                    f"   - Resolution Type: {evidence_result['evaluation']['resolution_type']}"
+                )
+                print(
+                    f"   - Evidence Fields: {len(evidence_result['evidence_generated'])}"
+                )
+                print(f"   - Status: {evidence_result['status']}")
+            except Exception as e:
+                # Log error but don't fail the whole conversation
+                print(f"⚠️  Warning: Failed to submit evidence to Stripe: {e}")
+                import traceback
+
+                traceback.print_exc()
 
             with self._lock:
                 self._conversations[conversation_id] = ConversationResult(
