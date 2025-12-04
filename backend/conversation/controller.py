@@ -23,12 +23,16 @@ async def start_conversation(
     fake_conv: bool = Query(
         False, description="Use fake conversation for testing (no real phone call)"
     ),
+    update_stripe: bool = Query(
+        False, description="Actually submit evidence to Stripe (set to false for testing)"
+    ),
 ) -> ConversationStartResponse:
     """
     Start a new phone conversation with the agent.
     The call will be made in the background and you can check the status later.
 
     For testing, use ?fake_conv=true to simulate a conversation without making a real phone call.
+    Use ?update_stripe=true to actually submit evidence to Stripe.
 
     Request body only requires the Stripe charge_id - all other information
     (customer details, product info, etc.) will be fetched automatically from Stripe.
@@ -36,7 +40,7 @@ async def start_conversation(
     conversation_id = conversation_service.create_conversation(request.charge_id)
 
     background_tasks.add_task(
-        conversation_service.run_conversation, conversation_id, fake_conv
+        conversation_service.run_conversation, conversation_id, fake_conv, update_stripe
     )
 
     return ConversationStartResponse(conversation_id=conversation_id, status="started")

@@ -117,6 +117,7 @@ class ConversationService:
         self,
         conversation_id: str,
         fake_conv: bool = False,
+        update_stripe: bool = False,
     ) -> None:
         if not agent_id:
             raise ValueError("AGENT_ID must be set in environment variables")
@@ -311,7 +312,7 @@ Note: Use the above information to support your procedural guidance. The evidenc
                     charge_id=charge_id,
                     transcript=evaluator_transcript,
                     submit_immediately=True,  # Submit to bank immediately
-                    send_to_stripe=not fake_conv,  # Actually send to Stripe
+                    send_to_stripe=update_stripe,  # Actually send to Stripe based on flag
                 )
 
                 print("✅ Evidence submitted successfully!")
@@ -342,7 +343,7 @@ Note: Use the above information to support your procedural guidance. The evidenc
                     ),
                     evidence_generated=evidence_generated,
                     status=evidence_dict['status'],
-                    submitted_to_stripe=not fake_conv
+                    submitted_to_stripe=update_stripe
                 )
             except Exception as e:
                 # Log error but don't fail the whole conversation

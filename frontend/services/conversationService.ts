@@ -6,9 +6,13 @@ export const conversationService = {
   /**
    * Start a new conversation with the given charge ID
    */
-  async startConversation(chargeId: string, fakeConv: boolean = false): Promise<ConversationStartResponse> {
+  async startConversation(
+    chargeId: string,
+    fakeConv: boolean = false,
+    updateStripe: boolean = false
+  ): Promise<ConversationStartResponse> {
     const response = await fetch(
-      `${API_BASE_URL}/api/conversation/start?fake_conv=${fakeConv}`,
+      `${API_BASE_URL}/api/conversation/start?fake_conv=${fakeConv}&update_stripe=${updateStripe}`,
       {
         method: 'POST',
         headers: {
