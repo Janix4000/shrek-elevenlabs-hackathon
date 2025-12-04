@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { Dispute, DisputeStatus, PaymentSource } from '../types';
-import { XCircle, Database, ArrowRight, FileText, Sparkles, Upload, X, Search } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Dispute, DisputeStatus, PaymentSource, ConversationResult, ConversationStatus } from '../types';
+import { XCircle, Database, ArrowRight, FileText, Sparkles, Upload, X, Search, Phone } from 'lucide-react';
 import { analyzeDisputeTranscript } from '../services/geminiService';
+import { conversationService } from '../services/conversationService';
 
 interface DisputesProps {
   disputes: Dispute[];
@@ -50,16 +51,51 @@ const PaymentLogo: React.FC<{ source: PaymentSource }> = ({ source }) => {
 
 const Disputes: React.FC<DisputesProps> = ({ disputes }) => {
   const [selectedDispute, setSelectedDispute] = useState<Dispute | null>(null);
-  const [analysis, setAnalysis] = useState<{recommendation: string, reasoning: string, confidence: number} | null>(null);
+  const [analysis, setAnalysis] = useState<{ recommendation: string, reasoning: string, confidence: number } | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [activeTab, setActiveTab] = useState('All Disputes');
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [conversationResult, setConversationResult] = useState<ConversationResult | null>(null);
+  const [isCallingCustomer, setIsCallingCustomer] = useState(false);
+  const [updateStripe, setUpdateStripe] = useState(false);
 
   const handleSelect = (dispute: Dispute) => {
     setSelectedDispute(dispute);
     setAnalysis(null);
     setUploadedFiles([]);
+    setConversationResult(null);
+    setUpdateStripe(false);
+  };
+
+  const handleCallCustomer = async () => {
+    if (!selectedDispute?.chargeId) return;
+
+    setIsCallingCustomer(true);
+    setConversationResult(null);
+
+    try {
+      // Start the conversation
+      const startResponse = await conversationService.startConversation(
+        selectedDispute.chargeId,
+        true, // Use fake_conv=true for testing
+        updateStripe // Use checkbox value for update_stripe
+      );
+
+      // Start polling for completion
+      await conversationService.pollForCompletion(
+        startResponse.conversation_id,
+        (result) => {
+          // Update UI with latest status
+          setConversationResult(result);
+        }
+      );
+    } catch (error) {
+      console.error('Failed to call customer:', error);
+      alert('Failed to start conversation. Please try again.');
+    } finally {
+      setIsCallingCustomer(false);
+    }
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -88,12 +124,12 @@ const Disputes: React.FC<DisputesProps> = ({ disputes }) => {
   let filteredDisputes = activeTab === 'All Disputes'
     ? disputes
     : activeTab === 'Action Required'
-    ? disputes.filter(d => d.status === DisputeStatus.ActionRequired)
-    : activeTab === 'Won'
-    ? disputes.filter(d => d.status === DisputeStatus.Won)
-    : activeTab === 'Lost'
-    ? disputes.filter(d => d.status === DisputeStatus.Lost)
-    : disputes;
+      ? disputes.filter(d => d.status === DisputeStatus.ActionRequired)
+      : activeTab === 'Won'
+        ? disputes.filter(d => d.status === DisputeStatus.Won)
+        : activeTab === 'Lost'
+          ? disputes.filter(d => d.status === DisputeStatus.Lost)
+          : disputes;
 
   // Apply search filter
   if (searchQuery) {
@@ -116,17 +152,16 @@ const Disputes: React.FC<DisputesProps> = ({ disputes }) => {
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           {tabs.map(tab => (
-              <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
-                      activeTab === tab
-                      ? 'bg-gradient-to-r from-slate-900 to-slate-700 text-white shadow-lg shadow-slate-900/25 scale-105'
-                      : 'bg-white border border-slate-200 text-slate-600 hover:border-slate-300 hover:shadow-md hover:scale-102'
-                  }`}
-              >
-                  {tab}
-              </button>
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${activeTab === tab
+                  ? 'bg-gradient-to-r from-slate-900 to-slate-700 text-white shadow-lg shadow-slate-900/25 scale-105'
+                  : 'bg-white border border-slate-200 text-slate-600 hover:border-slate-300 hover:shadow-md hover:scale-102'
+                }`}
+            >
+              {tab}
+            </button>
           ))}
         </div>
 
@@ -231,7 +266,7 @@ const Disputes: React.FC<DisputesProps> = ({ disputes }) => {
         </table>
       </div>
 
-       {/* Enhanced Drawer Overlay */}
+      {/* Enhanced Drawer Overlay */}
       {selectedDispute && (
         <>
           <div
@@ -241,222 +276,517 @@ const Disputes: React.FC<DisputesProps> = ({ disputes }) => {
           <div className="fixed inset-y-0 right-0 w-[520px] bg-gradient-to-br from-white via-white to-slate-50/30 shadow-2xl z-40 transform transition-transform border-l border-slate-200/80 flex flex-col animate-slide-in-right">
 
             <div className="p-6 border-b border-slate-200/80 flex justify-between items-center bg-gradient-to-r from-white to-slate-50/50">
-                <div>
-                    <h2 className="text-xl font-black text-slate-900 tracking-tight">Dispute Review</h2>
-                    <p className="text-xs text-slate-500 font-mono mt-1 bg-slate-100 px-2 py-0.5 rounded inline-block">ID: {selectedDispute.id}</p>
-                </div>
-                <div className="flex gap-2">
-                     <button onClick={() => setSelectedDispute(null)} className="p-2.5 hover:bg-slate-100 rounded-xl text-slate-400 hover:text-slate-600 transition-all hover:scale-110">
-                        <XCircle size={22} />
-                     </button>
-                </div>
+              <div>
+                <h2 className="text-xl font-black text-slate-900 tracking-tight">Dispute Review</h2>
+                <p className="text-xs text-slate-500 font-mono mt-1 bg-slate-100 px-2 py-0.5 rounded inline-block">ID: {selectedDispute.id}</p>
+              </div>
+              <div className="flex gap-3 items-center">
+                {selectedDispute.chargeId && (
+                  <div className="flex items-center gap-3">
+                    <label className="flex items-center gap-2 px-3 py-2 bg-slate-100 rounded-lg hover:bg-slate-200 transition-all cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={updateStripe}
+                        onChange={(e) => setUpdateStripe(e.target.checked)}
+                        disabled={isCallingCustomer || !!conversationResult}
+                        className="w-4 h-4 text-blue-600 bg-white border-slate-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer disabled:cursor-not-allowed"
+                      />
+                      <span className={`text-xs font-bold ${isCallingCustomer || conversationResult ? 'text-slate-400' : 'text-slate-700'}`}>
+                        Stripe
+                      </span>
+                    </label>
+                    <button
+                      onClick={handleCallCustomer}
+                      disabled={isCallingCustomer || !!conversationResult}
+                      className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all ${isCallingCustomer || conversationResult
+                          ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                          : 'bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700 shadow-lg shadow-green-500/30 hover:scale-105'
+                        }`}
+                    >
+                      <Phone size={18} />
+                      {isCallingCustomer ? 'Calling...' : conversationResult ? 'Call Complete' : 'Call Him'}
+                    </button>
+                  </div>
+                )}
+                <button onClick={() => setSelectedDispute(null)} className="p-2.5 hover:bg-slate-100 rounded-xl text-slate-400 hover:text-slate-600 transition-all hover:scale-110">
+                  <XCircle size={22} />
+                </button>
+              </div>
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 space-y-7">
 
-                 {/* Modern Transcript Card */}
-                 <div className="space-y-3">
-                    <h3 className="text-xs font-black uppercase text-slate-500 tracking-widest flex items-center gap-2">
-                      <div className="w-1 h-4 bg-gradient-to-b from-indigo-500 to-purple-500 rounded-full"></div>
-                      Voice Agent Transcript
-                    </h3>
-                    <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-2xl p-5 border border-slate-200 shadow-sm text-sm leading-relaxed space-y-3">
-                        {selectedDispute.transcript.split('\n').map((line, i) => (
-                             <p key={i} className={line.startsWith('Agent:') ? 'text-indigo-700 font-bold bg-indigo-50 px-3 py-2 rounded-lg border border-indigo-100' : 'text-slate-700 font-medium px-3 py-2'}>
-                                {line}
-                             </p>
+              {/* Conversation Status Card */}
+              {conversationResult && (
+                <div className="space-y-4">
+                  <h3 className="text-xs font-black uppercase text-slate-500 tracking-widest flex items-center gap-2">
+                    <div className="w-1 h-4 bg-gradient-to-b from-green-500 to-emerald-500 rounded-full"></div>
+                    Live Conversation
+                  </h3>
+
+                  {/* Status Badge */}
+                  <div className={`px-4 py-2 rounded-xl text-sm font-bold inline-block ${conversationResult.status === ConversationStatus.IN_PROGRESS
+                      ? 'bg-amber-100 text-amber-700'
+                      : conversationResult.status === ConversationStatus.COMPLETED
+                        ? 'bg-emerald-100 text-emerald-700'
+                        : 'bg-red-100 text-red-700'
+                    }`}>
+                    {conversationResult.status === ConversationStatus.IN_PROGRESS && 'In Progress...'}
+                    {conversationResult.status === ConversationStatus.COMPLETED && 'Completed'}
+                    {conversationResult.status === ConversationStatus.FAILED && 'Failed'}
+                  </div>
+
+                  {/* Live Transcript */}
+                  {conversationResult.transcript && conversationResult.transcript.length > 0 && (
+                    <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-2xl p-5 border border-slate-200 shadow-sm">
+                      <div className="space-y-3 max-h-96 overflow-y-auto">
+                        {conversationResult.transcript.map((entry, i) => (
+                          <p key={i} className={entry.speaker === 'agent'
+                            ? 'text-indigo-700 font-bold bg-indigo-50 px-3 py-2 rounded-lg border border-indigo-100'
+                            : 'text-slate-700 font-medium bg-green-50 px-3 py-2 rounded-lg border border-green-100'
+                          }>
+                            <span className="text-xs uppercase tracking-wider mr-2">
+                              {entry.speaker === 'agent' ? 'Agent' : 'Customer'}:
+                            </span>
+                            {entry.text}
+                          </p>
                         ))}
+                      </div>
                     </div>
-                 </div>
+                  )}
 
-                 {/* Enhanced RAG Pipeline with Modern Gradients */}
-                 {isAnalyzing && (
-                   <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border-2 border-indigo-200 rounded-2xl p-6 shadow-lg">
-                     <h3 className="text-sm font-black uppercase text-indigo-900 tracking-widest mb-5 flex items-center gap-2">
-                       <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md">
-                         <Database size={16} className="text-white" />
-                       </div>
-                       RAG Pipeline Processing
-                     </h3>
+                  {/* Summary */}
+                  {conversationResult.summary && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                      <h4 className="text-xs font-black uppercase text-blue-900 tracking-widest mb-2">Summary</h4>
+                      <p className="text-sm text-blue-800 font-medium">{conversationResult.summary}</p>
+                    </div>
+                  )}
 
-                     <div className="space-y-4">
-                       {/* Step 1: Query */}
-                       <div className="flex items-start gap-4 animate-fade-in bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-blue-100 shadow-sm">
-                         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-blue-500 flex items-center justify-center text-white text-sm font-black flex-shrink-0 shadow-lg shadow-blue-500/30">1</div>
-                         <div className="flex-1">
-                           <div className="font-bold text-base text-slate-900 mb-1.5">Query Embedding</div>
-                           <div className="text-xs text-slate-600 font-medium mb-3">Converting transcript to vector representation...</div>
-                           <div className="h-2 bg-blue-100 rounded-full overflow-hidden shadow-inner">
-                             <div className="h-full bg-gradient-to-r from-blue-600 to-blue-500 animate-pulse shadow-sm" style={{width: '100%'}}></div>
-                           </div>
-                         </div>
-                       </div>
+                  {/* Evidence Result */}
+                  {conversationResult.evidence_result && (
+                    <div className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-2xl p-5 shadow-lg">
+                      <h4 className="text-xs font-black uppercase text-purple-900 tracking-widest mb-4 flex items-center gap-2">
+                        <Sparkles size={16} className="text-purple-600" />
+                        AI Dispute Evaluation
+                      </h4>
 
-                       {/* Arrow */}
-                       <div className="flex justify-center">
-                         <ArrowRight size={18} className="text-indigo-300" strokeWidth={3} />
-                       </div>
-
-                       {/* Step 2: Retrieval */}
-                       <div className="flex items-start gap-4 animate-fade-in bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-purple-100 shadow-sm" style={{animationDelay: '0.2s'}}>
-                         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-purple-500 flex items-center justify-center text-white text-sm font-black flex-shrink-0 shadow-lg shadow-purple-500/30">2</div>
-                         <div className="flex-1">
-                           <div className="font-bold text-base text-slate-900 mb-1.5">Knowledge Retrieval</div>
-                           <div className="text-xs text-slate-600 font-medium mb-3">Searching policy database for relevant context...</div>
-                           <div className="flex flex-wrap gap-2">
-                             <div className="px-3 py-1.5 bg-gradient-to-r from-purple-100 to-purple-50 text-purple-700 rounded-lg text-xs font-bold border border-purple-200 shadow-sm">Return Policy</div>
-                             <div className="px-3 py-1.5 bg-gradient-to-r from-purple-100 to-purple-50 text-purple-700 rounded-lg text-xs font-bold border border-purple-200 shadow-sm">Fraud Guidelines</div>
-                             <div className="px-3 py-1.5 bg-gradient-to-r from-purple-100 to-purple-50 text-purple-700 rounded-lg text-xs font-bold border border-purple-200 shadow-sm">Past Cases</div>
-                           </div>
-                         </div>
-                       </div>
-
-                       {/* Arrow */}
-                       <div className="flex justify-center">
-                         <ArrowRight size={18} className="text-indigo-300" strokeWidth={3} />
-                       </div>
-
-                       {/* Step 3: Augmentation */}
-                       <div className="flex items-start gap-4 animate-fade-in bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-indigo-100 shadow-sm" style={{animationDelay: '0.4s'}}>
-                         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-500 flex items-center justify-center text-white text-sm font-black flex-shrink-0 shadow-lg shadow-indigo-500/30">3</div>
-                         <div className="flex-1">
-                           <div className="font-bold text-base text-slate-900 mb-1.5">Context Augmentation</div>
-                           <div className="text-xs text-slate-600 font-medium mb-3">Enriching prompt with retrieved knowledge...</div>
-                           <div className="bg-gradient-to-r from-indigo-100 to-indigo-50 rounded-lg p-3 text-xs text-indigo-900 font-bold border border-indigo-200 shadow-sm flex items-center gap-2">
-                             <FileText size={14} className="text-indigo-600" />
-                             3 documents • 2,847 tokens
-                           </div>
-                         </div>
-                       </div>
-
-                       {/* Arrow */}
-                       <div className="flex justify-center">
-                         <ArrowRight size={18} className="text-indigo-300" strokeWidth={3} />
-                       </div>
-
-                       {/* Step 4: Generation */}
-                       <div className="flex items-start gap-4 animate-fade-in bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-pink-100 shadow-sm" style={{animationDelay: '0.6s'}}>
-                         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-600 to-pink-500 flex items-center justify-center text-white text-sm font-black flex-shrink-0 shadow-lg shadow-pink-500/30">4</div>
-                         <div className="flex-1">
-                           <div className="font-bold text-base text-slate-900 mb-1.5 flex items-center gap-2">
-                             <Sparkles size={16} className="text-pink-600" />
-                             AI Generation
-                           </div>
-                           <div className="text-xs text-slate-600 font-medium mb-3">Generating recommendation with context...</div>
-                           <div className="flex items-center gap-3">
-                             <div className="flex-1 h-2 bg-pink-100 rounded-full overflow-hidden shadow-inner">
-                               <div className="h-full bg-gradient-to-r from-pink-600 to-pink-500 animate-pulse shadow-sm" style={{width: '75%'}}></div>
-                             </div>
-                             <span className="text-sm text-pink-600 font-black">75%</span>
-                           </div>
-                         </div>
-                       </div>
-                     </div>
-                   </div>
-                 )}
-
-                 {/* Enhanced AI Recommendation Card */}
-                <div className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 border-2 border-indigo-200 rounded-2xl p-6 shadow-lg">
-                     <div className="flex justify-between items-center mb-5">
-                        <h3 className="text-sm font-black uppercase text-indigo-900 tracking-widest flex items-center gap-2">
-                          <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center shadow-md">
-                            <Sparkles size={16} className="text-white" />
-                          </div>
-                          AI Recommendation
-                        </h3>
-                        {!analysis && (
-                            <button onClick={runAnalysis} className="text-xs bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2 rounded-xl font-bold hover:from-indigo-700 hover:to-purple-700 shadow-lg shadow-indigo-500/30 transition-all hover:scale-105">
-                                {isAnalyzing ? 'Analyzing...' : 'Analyze'}
-                            </button>
-                        )}
-                     </div>
-
-                     {analysis && (
-                        <div className="space-y-4 animate-fade-in">
-                             <div className="flex items-center gap-3 bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-indigo-100 shadow-sm">
-                                <span className="text-3xl font-black bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">{analysis.recommendation}</span>
-                             </div>
-                             <p className="text-sm text-slate-700 font-medium leading-relaxed bg-white/50 rounded-lg p-4 border border-indigo-100">{analysis.reasoning}</p>
-                             <div className="bg-white/70 rounded-xl p-4 border border-indigo-100">
-                               <div className="h-2 bg-indigo-100 rounded-full w-full overflow-hidden shadow-inner">
-                                   <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 shadow-sm" style={{width: `${analysis.confidence}%`}}></div>
-                               </div>
-                               <p className="text-xs text-indigo-600 font-black text-right mt-2">{analysis.confidence}% Confidence</p>
-                             </div>
+                      <div className="space-y-3">
+                        {/* Resolution Status */}
+                        <div className="flex items-center justify-between bg-white/70 rounded-lg p-3 border border-purple-100">
+                          <span className="text-sm font-bold text-slate-700">Resolved:</span>
+                          <span className={`px-3 py-1 rounded-lg text-xs font-black ${conversationResult.evidence_result.evaluation.resolved
+                              ? 'bg-emerald-100 text-emerald-700'
+                              : 'bg-red-100 text-red-700'
+                            }`}>
+                            {conversationResult.evidence_result.evaluation.resolved ? 'YES' : 'NO'}
+                          </span>
                         </div>
-                     )}
+
+                        {/* Resolution Type */}
+                        {conversationResult.evidence_result.evaluation.resolution_type && (
+                          <div className="flex items-center justify-between bg-white/70 rounded-lg p-3 border border-purple-100">
+                            <span className="text-sm font-bold text-slate-700">Resolution Type:</span>
+                            <span className="text-sm font-bold text-purple-700 uppercase">
+                              {conversationResult.evidence_result.evaluation.resolution_type}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Confidence */}
+                        {conversationResult.evidence_result.evaluation.confidence && (
+                          <div className="bg-white/70 rounded-lg p-3 border border-purple-100">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-sm font-bold text-slate-700">Confidence:</span>
+                              <span className="text-sm font-black text-purple-700">
+                                {Math.round(conversationResult.evidence_result.evaluation.confidence * 100)}%
+                              </span>
+                            </div>
+                            <div className="h-2 bg-purple-100 rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-gradient-to-r from-purple-500 to-pink-500"
+                                style={{ width: `${conversationResult.evidence_result.evaluation.confidence * 100}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Reasoning */}
+                        {conversationResult.evidence_result.evaluation.reasoning && (
+                          <div className="bg-white/70 rounded-lg p-3 border border-purple-100">
+                            <span className="text-xs font-black uppercase text-slate-500 block mb-1">Reasoning:</span>
+                            <p className="text-sm text-slate-700 font-medium leading-relaxed">
+                              {conversationResult.evidence_result.evaluation.reasoning}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Evidence Fields */}
+                        <div className="bg-white/70 rounded-lg p-3 border border-purple-100">
+                          <span className="text-xs font-black uppercase text-slate-500 block mb-2">Evidence Submitted:</span>
+                          <div className="flex flex-wrap gap-2">
+                            {Object.keys(conversationResult.evidence_result.evidence_generated).map((key) => (
+                              <span key={key} className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-bold">
+                                {key.replace(/_/g, ' ')}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Stripe Status */}
+                        <div className="flex items-center gap-2 text-xs text-slate-600 font-medium">
+                          <span className={`w-2 h-2 rounded-full ${conversationResult.evidence_result.submitted_to_stripe ? 'bg-emerald-500' : 'bg-amber-500'
+                            }`}></span>
+                          {conversationResult.evidence_result.submitted_to_stripe
+                            ? 'Evidence submitted to Stripe'
+                            : 'Test mode - not submitted to Stripe'}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Error */}
+                  {conversationResult.error && (
+                    <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+                      <h4 className="text-xs font-black uppercase text-red-900 tracking-widest mb-2">Error</h4>
+                      <p className="text-sm text-red-800 font-medium">{conversationResult.error}</p>
+                    </div>
+                  )}
                 </div>
+              )}
+
+              {/* Call to Action - Show only when no conversation has been started */}
+              {!conversationResult && !isCallingCustomer && selectedDispute.chargeId && (
+                <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-6 text-center">
+                  <Phone className="w-12 h-12 text-green-600 mx-auto mb-3" />
+                  <h3 className="text-lg font-black text-slate-900 mb-2">Ready to Call Customer</h3>
+                  <p className="text-sm text-slate-600 mb-4">
+                    Click "Call Him" to start the AI-powered conversation and automatically resolve this dispute.
+                  </p>
+                </div>
+              )}
+
+              {/* Mock Transcript for disputes without chargeId */}
+              {!selectedDispute.chargeId && (
+                <div className="space-y-4">
+                  <h3 className="text-xs font-black uppercase text-slate-500 tracking-widest flex items-center gap-2">
+                    <div className="w-1 h-4 bg-gradient-to-b from-green-500 to-emerald-500 rounded-full"></div>
+                    Previous Conversation
+                  </h3>
+
+                  {/* Status Badge */}
+                  <div className="px-4 py-2 rounded-xl text-sm font-bold inline-block bg-emerald-100 text-emerald-700">
+                    Completed
+                  </div>
+
+                  {/* Mock Transcript */}
+                  <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-2xl p-5 border border-slate-200 shadow-sm">
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      <p className="text-indigo-700 font-bold bg-indigo-50 px-3 py-2 rounded-lg border border-indigo-100">
+                        <span className="text-xs uppercase tracking-wider mr-2">Agent:</span>
+                        Hello, this is Sarah from customer service. I'm calling about your recent chargeback request.
+                      </p>
+                      <p className="text-slate-700 font-medium bg-green-50 px-3 py-2 rounded-lg border border-green-100">
+                        <span className="text-xs uppercase tracking-wider mr-2">Customer:</span>
+                        Hi Sarah, yes I disputed that charge because I wasn't satisfied with the service.
+                      </p>
+                      <p className="text-indigo-700 font-bold bg-indigo-50 px-3 py-2 rounded-lg border border-indigo-100">
+                        <span className="text-xs uppercase tracking-wider mr-2">Agent:</span>
+                        I understand your concern. I've reviewed your account and I can see you've been with us for over a year. Can you tell me more about what happened?
+                      </p>
+                      <p className="text-slate-700 font-medium bg-green-50 px-3 py-2 rounded-lg border border-green-100">
+                        <span className="text-xs uppercase tracking-wider mr-2">Customer:</span>
+                        Well, I expected more features for the price I'm paying. I feel like I'm not getting enough value.
+                      </p>
+                      <p className="text-indigo-700 font-bold bg-indigo-50 px-3 py-2 rounded-lg border border-indigo-100">
+                        <span className="text-xs uppercase tracking-wider mr-2">Agent:</span>
+                        I appreciate your feedback. Let me show you some features you might not be aware of. We recently added premium analytics and priority support to your plan at no extra cost.
+                      </p>
+                      <p className="text-slate-700 font-medium bg-green-50 px-3 py-2 rounded-lg border border-green-100">
+                        <span className="text-xs uppercase tracking-wider mr-2">Customer:</span>
+                        Oh, I didn't know about those features. That does sound more valuable.
+                      </p>
+                      <p className="text-indigo-700 font-bold bg-indigo-50 px-3 py-2 rounded-lg border border-indigo-100">
+                        <span className="text-xs uppercase tracking-wider mr-2">Agent:</span>
+                        I'd be happy to walk you through them. Would you like to continue your subscription and I can help you get set up?
+                      </p>
+                      <p className="text-slate-700 font-medium bg-green-50 px-3 py-2 rounded-lg border border-green-100">
+                        <span className="text-xs uppercase tracking-wider mr-2">Customer:</span>
+                        Yes, that would be great. I'll withdraw the chargeback.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Summary */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                    <h4 className="text-xs font-black uppercase text-blue-900 tracking-widest mb-2">Summary</h4>
+                    <p className="text-sm text-blue-800 font-medium">Customer agreed to continue subscription after learning about premium features. Chargeback withdrawn successfully.</p>
+                  </div>
+
+                  {/* Mock Evidence Result */}
+                  <div className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-2xl p-5 shadow-lg">
+                    <h4 className="text-xs font-black uppercase text-purple-900 tracking-widest mb-4 flex items-center gap-2">
+                      <Sparkles size={16} className="text-purple-600" />
+                      AI Dispute Evaluation
+                    </h4>
+
+                    <div className="space-y-3">
+                      {/* Resolution Status */}
+                      <div className="flex items-center justify-between bg-white/70 rounded-lg p-3 border border-purple-100">
+                        <span className="text-sm font-bold text-slate-700">Resolved:</span>
+                        <span className="px-3 py-1 rounded-lg text-xs font-black bg-emerald-100 text-emerald-700">
+                          YES
+                        </span>
+                      </div>
+
+                      {/* Resolution Type */}
+                      <div className="flex items-center justify-between bg-white/70 rounded-lg p-3 border border-purple-100">
+                        <span className="text-sm font-bold text-slate-700">Resolution Type:</span>
+                        <span className="text-sm font-bold text-purple-700 uppercase">
+                          RENEWED
+                        </span>
+                      </div>
+
+                      {/* Confidence */}
+                      <div className="bg-white/70 rounded-lg p-3 border border-purple-100">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-bold text-slate-700">Confidence:</span>
+                          <span className="text-sm font-black text-purple-700">
+                            95%
+                          </span>
+                        </div>
+                        <div className="h-2 bg-purple-100 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-gradient-to-r from-purple-500 to-pink-500"
+                            style={{ width: '95%' }}
+                          ></div>
+                        </div>
+                      </div>
+
+                      {/* Reasoning */}
+                      <div className="bg-white/70 rounded-lg p-3 border border-purple-100">
+                        <span className="text-xs font-black uppercase text-slate-500 block mb-1">Reasoning:</span>
+                        <p className="text-sm text-slate-700 font-medium leading-relaxed">
+                          Customer explicitly agreed to withdraw chargeback after understanding full service value. Strong evidence of resolution through education and feature demonstration.
+                        </p>
+                      </div>
+
+                      {/* Evidence Fields */}
+                      <div className="bg-white/70 rounded-lg p-3 border border-purple-100">
+                        <span className="text-xs font-black uppercase text-slate-500 block mb-2">Evidence Submitted:</span>
+                        <div className="flex flex-wrap gap-2">
+                          <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-bold">
+                            cancellation rebuttal
+                          </span>
+                          <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-bold">
+                            product description
+                          </span>
+                          <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-bold">
+                            customer communication
+                          </span>
+                          <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-bold">
+                            service date
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Stripe Status */}
+                      <div className="flex items-center gap-2 text-xs text-slate-600 font-medium">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        Evidence submitted to Stripe
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Enhanced RAG Pipeline with Modern Gradients */}
+              {isAnalyzing && (
+                <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border-2 border-indigo-200 rounded-2xl p-6 shadow-lg">
+                  <h3 className="text-sm font-black uppercase text-indigo-900 tracking-widest mb-5 flex items-center gap-2">
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md">
+                      <Database size={16} className="text-white" />
+                    </div>
+                    RAG Pipeline Processing
+                  </h3>
+
+                  <div className="space-y-4">
+                    {/* Step 1: Query */}
+                    <div className="flex items-start gap-4 animate-fade-in bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-blue-100 shadow-sm">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-blue-500 flex items-center justify-center text-white text-sm font-black flex-shrink-0 shadow-lg shadow-blue-500/30">1</div>
+                      <div className="flex-1">
+                        <div className="font-bold text-base text-slate-900 mb-1.5">Query Embedding</div>
+                        <div className="text-xs text-slate-600 font-medium mb-3">Converting transcript to vector representation...</div>
+                        <div className="h-2 bg-blue-100 rounded-full overflow-hidden shadow-inner">
+                          <div className="h-full bg-gradient-to-r from-blue-600 to-blue-500 animate-pulse shadow-sm" style={{ width: '100%' }}></div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Arrow */}
+                    <div className="flex justify-center">
+                      <ArrowRight size={18} className="text-indigo-300" strokeWidth={3} />
+                    </div>
+
+                    {/* Step 2: Retrieval */}
+                    <div className="flex items-start gap-4 animate-fade-in bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-purple-100 shadow-sm" style={{ animationDelay: '0.2s' }}>
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-purple-500 flex items-center justify-center text-white text-sm font-black flex-shrink-0 shadow-lg shadow-purple-500/30">2</div>
+                      <div className="flex-1">
+                        <div className="font-bold text-base text-slate-900 mb-1.5">Knowledge Retrieval</div>
+                        <div className="text-xs text-slate-600 font-medium mb-3">Searching policy database for relevant context...</div>
+                        <div className="flex flex-wrap gap-2">
+                          <div className="px-3 py-1.5 bg-gradient-to-r from-purple-100 to-purple-50 text-purple-700 rounded-lg text-xs font-bold border border-purple-200 shadow-sm">Return Policy</div>
+                          <div className="px-3 py-1.5 bg-gradient-to-r from-purple-100 to-purple-50 text-purple-700 rounded-lg text-xs font-bold border border-purple-200 shadow-sm">Fraud Guidelines</div>
+                          <div className="px-3 py-1.5 bg-gradient-to-r from-purple-100 to-purple-50 text-purple-700 rounded-lg text-xs font-bold border border-purple-200 shadow-sm">Past Cases</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Arrow */}
+                    <div className="flex justify-center">
+                      <ArrowRight size={18} className="text-indigo-300" strokeWidth={3} />
+                    </div>
+
+                    {/* Step 3: Augmentation */}
+                    <div className="flex items-start gap-4 animate-fade-in bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-indigo-100 shadow-sm" style={{ animationDelay: '0.4s' }}>
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-500 flex items-center justify-center text-white text-sm font-black flex-shrink-0 shadow-lg shadow-indigo-500/30">3</div>
+                      <div className="flex-1">
+                        <div className="font-bold text-base text-slate-900 mb-1.5">Context Augmentation</div>
+                        <div className="text-xs text-slate-600 font-medium mb-3">Enriching prompt with retrieved knowledge...</div>
+                        <div className="bg-gradient-to-r from-indigo-100 to-indigo-50 rounded-lg p-3 text-xs text-indigo-900 font-bold border border-indigo-200 shadow-sm flex items-center gap-2">
+                          <FileText size={14} className="text-indigo-600" />
+                          3 documents • 2,847 tokens
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Arrow */}
+                    <div className="flex justify-center">
+                      <ArrowRight size={18} className="text-indigo-300" strokeWidth={3} />
+                    </div>
+
+                    {/* Step 4: Generation */}
+                    <div className="flex items-start gap-4 animate-fade-in bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-pink-100 shadow-sm" style={{ animationDelay: '0.6s' }}>
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-600 to-pink-500 flex items-center justify-center text-white text-sm font-black flex-shrink-0 shadow-lg shadow-pink-500/30">4</div>
+                      <div className="flex-1">
+                        <div className="font-bold text-base text-slate-900 mb-1.5 flex items-center gap-2">
+                          <Sparkles size={16} className="text-pink-600" />
+                          AI Generation
+                        </div>
+                        <div className="text-xs text-slate-600 font-medium mb-3">Generating recommendation with context...</div>
+                        <div className="flex items-center gap-3">
+                          <div className="flex-1 h-2 bg-pink-100 rounded-full overflow-hidden shadow-inner">
+                            <div className="h-full bg-gradient-to-r from-pink-600 to-pink-500 animate-pulse shadow-sm" style={{ width: '75%' }}></div>
+                          </div>
+                          <span className="text-sm text-pink-600 font-black">75%</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Enhanced AI Recommendation Card */}
+              <div className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 border-2 border-indigo-200 rounded-2xl p-6 shadow-lg">
+                <div className="flex justify-between items-center mb-5">
+                  <h3 className="text-sm font-black uppercase text-indigo-900 tracking-widest flex items-center gap-2">
+                    <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center shadow-md">
+                      <Sparkles size={16} className="text-white" />
+                    </div>
+                    AI Recommendation
+                  </h3>
+                  {!analysis && (
+                    <button onClick={runAnalysis} className="text-xs bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2 rounded-xl font-bold hover:from-indigo-700 hover:to-purple-700 shadow-lg shadow-indigo-500/30 transition-all hover:scale-105">
+                      {isAnalyzing ? 'Analyzing...' : 'Analyze'}
+                    </button>
+                  )}
+                </div>
+
+                {analysis && (
+                  <div className="space-y-4 animate-fade-in">
+                    <div className="flex items-center gap-3 bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-indigo-100 shadow-sm">
+                      <span className="text-3xl font-black bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">{analysis.recommendation}</span>
+                    </div>
+                    <p className="text-sm text-slate-700 font-medium leading-relaxed bg-white/50 rounded-lg p-4 border border-indigo-100">{analysis.reasoning}</p>
+                    <div className="bg-white/70 rounded-xl p-4 border border-indigo-100">
+                      <div className="h-2 bg-indigo-100 rounded-full w-full overflow-hidden shadow-inner">
+                        <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 shadow-sm" style={{ width: `${analysis.confidence}%` }}></div>
+                      </div>
+                      <p className="text-xs text-indigo-600 font-black text-right mt-2">{analysis.confidence}% Confidence</p>
+                    </div>
+                  </div>
+                )}
+              </div>
 
             </div>
 
             <div className="p-6 border-t-2 border-slate-200 space-y-4 bg-gradient-to-br from-white to-slate-50/50">
-                 {/* Modern Upload Section */}
-                 <div className="space-y-3">
-                   <label className="block text-xs font-black text-slate-700 uppercase tracking-widest flex items-center gap-2">
-                     <div className="w-1 h-4 bg-gradient-to-b from-blue-500 to-indigo-500 rounded-full"></div>
-                     Evidence Documents
-                   </label>
+              {/* Modern Upload Section */}
+              <div className="space-y-3">
+                <label className="block text-xs font-black text-slate-700 uppercase tracking-widest flex items-center gap-2">
+                  <div className="w-1 h-4 bg-gradient-to-b from-blue-500 to-indigo-500 rounded-full"></div>
+                  Evidence Documents
+                </label>
 
-                   {/* Uploaded Files List */}
-                   {uploadedFiles.length > 0 && (
-                     <div className="space-y-2 mb-2">
-                       {uploadedFiles.map((file, index) => (
-                         <div key={index} className="flex items-center justify-between bg-gradient-to-r from-slate-50 to-slate-100/50 border border-slate-200 rounded-xl px-4 py-3 shadow-sm group hover:shadow-md transition-all">
-                           <div className="flex items-center gap-3 flex-1 min-w-0">
-                             <div className="w-8 h-8 bg-gradient-to-br from-red-50 to-red-100 rounded-lg flex items-center justify-center border border-red-200">
-                               <FileText size={16} className="text-red-600" />
-                             </div>
-                             <div className="flex-1 min-w-0">
-                               <span className="text-sm text-slate-900 font-bold truncate block">{file.name}</span>
-                               <span className="text-xs text-slate-400 font-medium">
-                                 {(file.size / 1024).toFixed(1)} KB
-                               </span>
-                             </div>
-                           </div>
-                           <button
-                             onClick={() => removeFile(index)}
-                             className="p-2 hover:bg-red-100 rounded-lg transition-all flex-shrink-0 group-hover:scale-110"
-                           >
-                             <X size={16} className="text-slate-400 hover:text-red-600" />
-                           </button>
-                         </div>
-                       ))}
-                     </div>
-                   )}
+                {/* Uploaded Files List */}
+                {uploadedFiles.length > 0 && (
+                  <div className="space-y-2 mb-2">
+                    {uploadedFiles.map((file, index) => (
+                      <div key={index} className="flex items-center justify-between bg-gradient-to-r from-slate-50 to-slate-100/50 border border-slate-200 rounded-xl px-4 py-3 shadow-sm group hover:shadow-md transition-all">
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          <div className="w-8 h-8 bg-gradient-to-br from-red-50 to-red-100 rounded-lg flex items-center justify-center border border-red-200">
+                            <FileText size={16} className="text-red-600" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <span className="text-sm text-slate-900 font-bold truncate block">{file.name}</span>
+                            <span className="text-xs text-slate-400 font-medium">
+                              {(file.size / 1024).toFixed(1)} KB
+                            </span>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => removeFile(index)}
+                          className="p-2 hover:bg-red-100 rounded-lg transition-all flex-shrink-0 group-hover:scale-110"
+                        >
+                          <X size={16} className="text-slate-400 hover:text-red-600" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
-                   {/* Modern Upload Button */}
-                   <label className="flex items-center justify-center gap-3 px-5 py-4 border-2 border-dashed border-slate-300 text-slate-600 font-bold text-sm rounded-xl hover:bg-slate-50 hover:border-indigo-400 cursor-pointer transition-all hover:shadow-md group">
-                     <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center group-hover:bg-indigo-100 transition-colors">
-                       <Upload size={18} className="text-slate-600 group-hover:text-indigo-600" />
-                     </div>
-                     <span className="group-hover:text-indigo-600 transition-colors">Upload PDF Evidence</span>
-                     <input
-                       type="file"
-                       accept=".pdf,application/pdf"
-                       multiple
-                       onChange={handleFileUpload}
-                       className="hidden"
-                     />
-                   </label>
-                   <p className="text-xs text-slate-400 font-medium">Accepted formats: PDF only</p>
-                 </div>
+                {/* Modern Upload Button */}
+                <label className="flex items-center justify-center gap-3 px-5 py-4 border-2 border-dashed border-slate-300 text-slate-600 font-bold text-sm rounded-xl hover:bg-slate-50 hover:border-indigo-400 cursor-pointer transition-all hover:shadow-md group">
+                  <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center group-hover:bg-indigo-100 transition-colors">
+                    <Upload size={18} className="text-slate-600 group-hover:text-indigo-600" />
+                  </div>
+                  <span className="group-hover:text-indigo-600 transition-colors">Upload PDF Evidence</span>
+                  <input
+                    type="file"
+                    accept=".pdf,application/pdf"
+                    multiple
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+                </label>
+                <p className="text-xs text-slate-400 font-medium">Accepted formats: PDF only</p>
+              </div>
 
-                 {/* Enhanced Action Buttons */}
-                 <div className="flex gap-3 pt-2">
-                   <button className="flex-1 py-3 border-2 border-slate-200 text-slate-700 font-bold text-sm rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all hover:shadow-md">
-                      Ignore
-                   </button>
-                   <button
-                     className={`flex-1 py-3 font-bold text-sm rounded-xl transition-all ${
-                       uploadedFiles.length > 0
-                         ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:scale-105'
-                         : 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                     }`}
-                     disabled={uploadedFiles.length === 0}
-                   >
-                      Submit Evidence ({uploadedFiles.length})
-                   </button>
-                 </div>
+              {/* Enhanced Action Buttons */}
+              <div className="flex gap-3 pt-2">
+                <button className="flex-1 py-3 border-2 border-slate-200 text-slate-700 font-bold text-sm rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all hover:shadow-md">
+                  Ignore
+                </button>
+                <button
+                  className={`flex-1 py-3 font-bold text-sm rounded-xl transition-all ${uploadedFiles.length > 0
+                      ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:scale-105'
+                      : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                    }`}
+                  disabled={uploadedFiles.length === 0}
+                >
+                  Submit Evidence ({uploadedFiles.length})
+                </button>
+              </div>
             </div>
           </div>
         </>

@@ -21,6 +21,7 @@ const MOCK_DISPUTES: Dispute[] = [
     paymentSource: 'visa',
     agentName: 'Fraud Detection',
     callResult: 'Required police report - Customer refused',
+    chargeId: 'ch_3SaQFuAITa6PCFHj0dnBlMJP', // Add charge ID for conversation
     transcript: `Agent: ChargeGuard connected.
 Agent: Hi Trisha, I see you've disputed the charge for Huel Black Edition. Can you tell me more?
 Customer: I never received them. Tracking says delivered but it wasn't there.

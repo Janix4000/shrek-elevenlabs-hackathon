@@ -71,7 +71,7 @@ Format: Simple numbered list, nothing more, nothing less. No introduction, no co
 
         # Call Claude API
         message = self.anthropic_client.messages.create(
-            model="claude-sonnet-4-5",
+            model="claude-sonnet-4-20250514",
             max_tokens=2000,
             messages=[
                 {"role": "user", "content": prompt}
@@ -131,4 +131,54 @@ Format: Simple numbered list, nothing more, nothing less. No introduction, no co
             "email": metadata.get('customer_email', 'Unknown'),
             "phone": metadata.get('customer_phone', 'Unknown'),
             "customer_id": metadata.get('customer_id', 'Unknown'),
+        }
+
+    def get_charge_details(self, charge_id: str) -> Dict[str, Any]:
+        """
+        Get comprehensive charge details including product information.
+
+        Args:
+            charge_id: Stripe charge ID
+
+        Returns:
+            Dictionary with complete charge details including:
+            - customer_info: name, email, phone, customer_id
+            - product_info: name, description, code/sku, category, price
+            - charge_info: amount, currency, date, status
+            - metadata: all metadata fields
+        """
+        charge = self.stripe_client.get_charge(charge_id)
+        metadata = charge.metadata or {}
+
+        # Extract customer information
+        customer_info = {
+            "name": metadata.get('customer_name', 'Unknown'),
+            "email": metadata.get('customer_email', 'Unknown'),
+            "phone": metadata.get('customer_phone', 'Unknown'),
+            "customer_id": metadata.get('customer_id', 'Unknown'),
+        }
+
+        # Extract product information from metadata
+        product_info = {
+            "name": metadata.get('product_name', charge.description or 'Unknown Product'),
+            "description": charge.description or metadata.get('product_type', 'No description available'),
+            "code": metadata.get('subscription_tier', metadata.get('product_code', 'N/A')),
+            "category": metadata.get('product_type', 'N/A'),
+            "price": charge.amount / 100,  # Convert cents to dollars
+        }
+
+        # Extract charge information
+        charge_info = {
+            "amount": charge.amount / 100,
+            "currency": charge.currency.upper(),
+            "date": metadata.get('subscription_start', metadata.get('billing_period_start', 'N/A')),
+            "status": charge.status,
+            "charge_id": charge_id,
+        }
+
+        return {
+            "customer_info": customer_info,
+            "product_info": product_info,
+            "charge_info": charge_info,
+            "metadata": metadata,
         }
