@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { Clock, Phone, Zap, Plus, Settings, TrendingUp, Bell, MessageSquare, Mail, Shield, Target, Globe, Brain } from 'lucide-react';
 import AutomationFlowConfig, { AutomationConfig } from './AutomationFlowConfig';
+import { Button } from './ui/button';
+import { Card } from './ui/card';
+import { Badge } from './ui/badge';
 
 interface Automation {
   id: string;
@@ -80,34 +83,34 @@ const Automations: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Intelligent Automation</h1>
-          <p className="text-slate-500 text-sm mt-1">AI-powered workflows that work 24/7 to win disputes and prevent chargebacks</p>
+          <h1 className="text-2xl font-bold text-foreground">Intelligent Automation</h1>
+          <p className="text-muted-foreground text-sm mt-1">AI-powered workflows that work 24/7 to win disputes and prevent chargebacks</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-lg text-sm font-semibold hover:bg-slate-800 shadow-sm">
+        <Button className="flex items-center gap-2">
           <Plus size={16} /> Create New Automation
-        </button>
+        </Button>
       </div>
 
       {/* Automation List */}
-      <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+      <Card>
         <table className="w-full text-left border-collapse">
-          <thead className="bg-slate-50 border-b border-slate-200">
+          <thead className="bg-muted border-b border-border">
             <tr>
-              <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Automation</th>
-              <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Triggers</th>
-              <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Success Rate</th>
-              <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider"></th>
+              <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Automation</th>
+              <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Status</th>
+              <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Triggers</th>
+              <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Success Rate</th>
+              <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider"></th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-border">
             {MOCK_AUTOMATIONS.map((automation) => {
               const colors = getColorClasses(automation.color);
               return (
                 <tr
                   key={automation.id}
                   onClick={() => setConfigureAutomation(automation)}
-                  className="hover:bg-slate-50 cursor-pointer transition-colors group"
+                  className="hover:bg-muted/50 cursor-pointer transition-colors group"
                 >
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-4">
@@ -115,49 +118,50 @@ const Automations: React.FC = () => {
                         {automation.icon}
                       </div>
                       <div className="flex-1">
-                        <div className="text-lg font-bold text-slate-900 mb-1">{automation.keyMessage}</div>
-                        <div className="text-sm text-slate-600">{automation.description}</div>
+                        <div className="text-lg font-bold text-foreground mb-1">{automation.keyMessage}</div>
+                        <div className="text-sm text-muted-foreground">{automation.description}</div>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-5">
-                    <div className="flex items-center gap-2 text-emerald-600">
+                    <Badge variant="default" className="gap-2">
                       <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                      <span className="text-sm font-semibold">Active</span>
-                    </div>
+                      <span>Active</span>
+                    </Badge>
                   </td>
                   <td className="px-6 py-5">
-                    <span className="text-lg font-bold text-slate-900">{automation.triggersCount.toLocaleString()}</span>
+                    <span className="text-lg font-bold text-foreground">{automation.triggersCount.toLocaleString()}</span>
                   </td>
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-3">
-                      <div className="w-24 h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="w-24 h-2.5 bg-muted rounded-full overflow-hidden">
                         <div
                           style={{ width: `${automation.successRate}%` }}
                           className="h-full bg-blue-600"
                         ></div>
                       </div>
-                      <span className="text-lg font-bold text-slate-900 w-12">{automation.successRate}%</span>
+                      <span className="text-lg font-bold text-foreground w-12">{automation.successRate}%</span>
                     </div>
                   </td>
                   <td className="px-6 py-5">
-                    <button
+                    <Button
                       onClick={(e) => {
                         e.stopPropagation();
                         setConfigureAutomation(automation);
                       }}
-                      className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-lg text-sm font-semibold hover:bg-slate-800 opacity-0 group-hover:opacity-100 transition-opacity"
+                      size="sm"
+                      className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
                     >
                       <Settings size={14} />
                       Configure
-                    </button>
+                    </Button>
                   </td>
                 </tr>
               );
             })}
           </tbody>
         </table>
-      </div>
+      </Card>
 
       {/* Automation Configuration Modal */}
       {configureAutomation && (

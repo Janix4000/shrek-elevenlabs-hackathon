@@ -508,7 +508,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-[#F8FAFC] font-sans text-slate-900">
+    <div className="h-screen flex flex-col bg-background font-sans text-foreground">
       <Header currentView={currentView} onChangeView={setCurrentView} />
       <main className="flex-1 p-4 md:p-5 max-w-[2000px] mx-auto w-full overflow-auto">
         {renderView()}

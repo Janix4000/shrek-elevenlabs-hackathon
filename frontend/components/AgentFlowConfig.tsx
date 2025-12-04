@@ -175,12 +175,12 @@ const AgentFlowConfig: React.FC<AgentFlowConfigProps> = ({ agentName, onClose, o
 
   return (
     <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-6">
-      <div className="bg-white rounded-xl w-full max-w-7xl h-[90vh] shadow-2xl flex">
+      <div className="bg-card rounded-xl w-full max-w-7xl h-[90vh] shadow-2xl flex">
 
         {/* Left Side: React Flow */}
-        <div className="w-2/5 border-r border-slate-200 flex flex-col">
-          <div className="p-6 border-b border-slate-200">
-            <h3 className="font-bold text-slate-900 flex items-center gap-2">
+        <div className="w-2/5 border-r border-border flex flex-col">
+          <div className="p-6 border-b border-border">
+            <h3 className="font-bold text-foreground flex items-center gap-2">
               <Zap size={20} className="text-blue-600" />
               Conversation Flow
             </h3>
@@ -200,7 +200,7 @@ const AgentFlowConfig: React.FC<AgentFlowConfigProps> = ({ agentName, onClose, o
               <Controls />
             </ReactFlow>
 
-            <div className="absolute bottom-4 left-4 bg-white p-3 rounded-lg shadow-lg border border-slate-200 max-w-[200px]">
+            <div className="absolute bottom-4 left-4 bg-card p-3 rounded-lg shadow-lg border border-border max-w-[200px]">
               <p className="text-xs text-slate-600 mb-2">
                 Click nodes to edit conversation steps
               </p>
@@ -244,7 +244,7 @@ const AgentFlowConfig: React.FC<AgentFlowConfigProps> = ({ agentName, onClose, o
             <div className="space-y-6">
 
               {/* Voice Selection */}
-              <div className="bg-slate-50 p-5 rounded-xl border border-slate-200">
+              <div className="bg-muted p-5 rounded-xl border border-border">
                 <h3 className="font-bold text-slate-900 mb-3 flex items-center gap-2">
                   <Phone size={16} className="text-blue-600" /> Voice Settings
                 </h3>
@@ -319,7 +319,7 @@ const AgentFlowConfig: React.FC<AgentFlowConfigProps> = ({ agentName, onClose, o
               </div>
 
               {/* First Message & Prompt */}
-              <div className="bg-slate-50 p-5 rounded-xl border border-slate-200">
+              <div className="bg-muted p-5 rounded-xl border border-border">
                 <h3 className="font-bold text-slate-900 mb-3 flex items-center gap-2">
                   <MessageSquare size={16} className="text-blue-600" /> Conversation
                 </h3>
@@ -383,7 +383,7 @@ const AgentFlowConfig: React.FC<AgentFlowConfigProps> = ({ agentName, onClose, o
               </div>
 
               {/* Call Settings */}
-              <div className="bg-slate-50 p-5 rounded-xl border border-slate-200">
+              <div className="bg-muted p-5 rounded-xl border border-border">
                 <h3 className="font-bold text-slate-900 mb-3">Call Settings</h3>
 
                 <div className="space-y-4">
@@ -438,7 +438,7 @@ const AgentFlowConfig: React.FC<AgentFlowConfigProps> = ({ agentName, onClose, o
               </div>
 
               {/* Webhooks */}
-              <div className="bg-slate-50 p-5 rounded-xl border border-slate-200">
+              <div className="bg-muted p-5 rounded-xl border border-border">
                 <h3 className="font-bold text-slate-900 mb-3 flex items-center gap-2">
                   <FileText size={16} className="text-blue-600" /> Webhooks
                 </h3>
@@ -478,7 +478,7 @@ const AgentFlowConfig: React.FC<AgentFlowConfigProps> = ({ agentName, onClose, o
           </div>
 
           {/* Footer */}
-          <div className="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
+          <div className="p-4 border-t border-border bg-muted flex items-center justify-between">
             <button className="flex items-center gap-2 px-3 py-2 bg-slate-200 text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-300">
               <Play size={14} /> Test Agent
             </button>

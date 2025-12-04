@@ -165,7 +165,7 @@ const Disputes: React.FC<DisputesProps> = ({ disputes }) => {
               <tr
                 key={dispute.id}
                 onClick={() => handleSelect(dispute)}
-                className="hover:bg-secondary cursor-pointer transition-colors"
+                className="hover:bg-muted cursor-pointer transition-colors"
               >
                 <td className="px-6 py-5">
                   <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
@@ -260,8 +260,8 @@ const Disputes: React.FC<DisputesProps> = ({ disputes }) => {
 
                      <div className="space-y-4">
                        {/* Step 1: Query */}
-                       <div className="flex items-start gap-4 animate-fade-in bg-card rounded-xl p-4 border border-border shadow-sm">
-                         <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white text-sm font-black flex-shrink-0">1</div>
+                       <div className="flex items-start gap-4 animate-fade-in bg-card backdrop-blur-sm rounded-xl p-4 border border-border shadow-sm">
+                         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-blue-500 flex items-center justify-center text-white text-sm font-black flex-shrink-0 shadow-lg shadow-blue-500/30">1</div>
                          <div className="flex-1">
                            <div className="font-bold text-base text-foreground mb-1.5">Query Embedding</div>
                            <div className="text-xs text-muted-foreground font-medium mb-3">Converting transcript to vector representation...</div>
@@ -277,15 +277,15 @@ const Disputes: React.FC<DisputesProps> = ({ disputes }) => {
                        </div>
 
                        {/* Step 2: Retrieval */}
-                       <div className="flex items-start gap-4 animate-fade-in bg-card rounded-xl p-4 border border-border shadow-sm" style={{animationDelay: '0.2s'}}>
-                         <div className="w-10 h-10 rounded-xl bg-purple-600 flex items-center justify-center text-white text-sm font-black flex-shrink-0">2</div>
+                       <div className="flex items-start gap-4 animate-fade-in bg-card backdrop-blur-sm rounded-xl p-4 border border-border shadow-sm" style={{animationDelay: '0.2s'}}>
+                         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-purple-500 flex items-center justify-center text-white text-sm font-black flex-shrink-0 shadow-lg shadow-purple-500/30">2</div>
                          <div className="flex-1">
                            <div className="font-bold text-base text-foreground mb-1.5">Knowledge Retrieval</div>
                            <div className="text-xs text-muted-foreground font-medium mb-3">Searching policy database for relevant context...</div>
                            <div className="flex flex-wrap gap-2">
-                             <div className="px-3 py-1.5 bg-purple-100 text-purple-700 rounded-lg text-xs font-bold border border-purple-200">Return Policy</div>
-                             <div className="px-3 py-1.5 bg-purple-100 text-purple-700 rounded-lg text-xs font-bold border border-purple-200">Fraud Guidelines</div>
-                             <div className="px-3 py-1.5 bg-purple-100 text-purple-700 rounded-lg text-xs font-bold border border-purple-200">Past Cases</div>
+                             <div className="px-3 py-1.5 bg-gradient-to-r from-purple-100 to-purple-50 text-purple-700 rounded-lg text-xs font-bold border border-purple-200 shadow-sm">Return Policy</div>
+                             <div className="px-3 py-1.5 bg-gradient-to-r from-purple-100 to-purple-50 text-purple-700 rounded-lg text-xs font-bold border border-purple-200 shadow-sm">Fraud Guidelines</div>
+                             <div className="px-3 py-1.5 bg-gradient-to-r from-purple-100 to-purple-50 text-purple-700 rounded-lg text-xs font-bold border border-purple-200 shadow-sm">Past Cases</div>
                            </div>
                          </div>
                        </div>
@@ -296,12 +296,12 @@ const Disputes: React.FC<DisputesProps> = ({ disputes }) => {
                        </div>
 
                        {/* Step 3: Augmentation */}
-                       <div className="flex items-start gap-4 animate-fade-in bg-card rounded-xl p-4 border border-border shadow-sm" style={{animationDelay: '0.4s'}}>
-                         <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white text-sm font-black flex-shrink-0">3</div>
+                       <div className="flex items-start gap-4 animate-fade-in bg-card backdrop-blur-sm rounded-xl p-4 border border-border shadow-sm" style={{animationDelay: '0.4s'}}>
+                         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-500 flex items-center justify-center text-white text-sm font-black flex-shrink-0 shadow-lg shadow-indigo-500/30">3</div>
                          <div className="flex-1">
                            <div className="font-bold text-base text-foreground mb-1.5">Context Augmentation</div>
                            <div className="text-xs text-muted-foreground font-medium mb-3">Enriching prompt with retrieved knowledge...</div>
-                           <div className="bg-indigo-100 rounded-lg p-3 text-xs text-indigo-900 font-bold border border-indigo-200 flex items-center gap-2">
+                           <div className="bg-gradient-to-r from-indigo-100 to-indigo-50 rounded-lg p-3 text-xs text-indigo-900 font-bold border border-indigo-200 shadow-sm flex items-center gap-2">
                              <FileText size={14} className="text-indigo-600" />
                              3 documents • 2,847 tokens
                            </div>
@@ -314,8 +314,8 @@ const Disputes: React.FC<DisputesProps> = ({ disputes }) => {
                        </div>
 
                        {/* Step 4: Generation */}
-                       <div className="flex items-start gap-4 animate-fade-in bg-card rounded-xl p-4 border border-border shadow-sm" style={{animationDelay: '0.6s'}}>
-                         <div className="w-10 h-10 rounded-xl bg-pink-600 flex items-center justify-center text-white text-sm font-black flex-shrink-0">4</div>
+                       <div className="flex items-start gap-4 animate-fade-in bg-card backdrop-blur-sm rounded-xl p-4 border border-border shadow-sm" style={{animationDelay: '0.6s'}}>
+                         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-600 to-pink-500 flex items-center justify-center text-white text-sm font-black flex-shrink-0 shadow-lg shadow-pink-500/30">4</div>
                          <div className="flex-1">
                            <div className="font-bold text-base text-foreground mb-1.5 flex items-center gap-2">
                              <Sparkles size={16} className="text-pink-600" />
@@ -323,8 +323,8 @@ const Disputes: React.FC<DisputesProps> = ({ disputes }) => {
                            </div>
                            <div className="text-xs text-muted-foreground font-medium mb-3">Generating recommendation with context...</div>
                            <div className="flex items-center gap-3">
-                             <div className="flex-1 h-2 bg-pink-100 rounded-full overflow-hidden">
-                               <div className="h-full bg-pink-600 animate-pulse" style={{width: '75%'}}></div>
+                             <div className="flex-1 h-2 bg-pink-100 rounded-full overflow-hidden shadow-inner">
+                               <div className="h-full bg-gradient-to-r from-pink-600 to-pink-500 animate-pulse shadow-sm" style={{width: '75%'}}></div>
                              </div>
                              <span className="text-sm text-pink-600 font-black">75%</span>
                            </div>
@@ -346,7 +346,7 @@ const Disputes: React.FC<DisputesProps> = ({ disputes }) => {
                           AI Recommendation
                         </CardTitle>
                         {!analysis && (
-                            <Button onClick={runAnalysis} size="sm" className="bg-indigo-600 hover:bg-indigo-700">
+                            <Button onClick={runAnalysis} size="sm" className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg shadow-indigo-500/30 hover:scale-105">
                                 {isAnalyzing ? 'Analyzing...' : 'Analyze'}
                             </Button>
                         )}
@@ -356,13 +356,13 @@ const Disputes: React.FC<DisputesProps> = ({ disputes }) => {
 
                      {analysis && (
                         <div className="space-y-4 animate-fade-in">
-                             <div className="flex items-center gap-3 bg-muted rounded-xl p-4 border">
-                                <span className="text-3xl font-black text-indigo-600">{analysis.recommendation}</span>
+                             <div className="flex items-center gap-3 bg-muted/70 backdrop-blur-sm rounded-xl p-4 border shadow-sm">
+                                <span className="text-3xl font-black bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">{analysis.recommendation}</span>
                              </div>
-                             <p className="text-sm text-muted-foreground font-medium leading-relaxed bg-muted rounded-lg p-4 border">{analysis.reasoning}</p>
-                             <div className="bg-muted rounded-xl p-4 border">
-                               <div className="h-2 bg-slate-200 rounded-full w-full overflow-hidden">
-                                   <div className="h-full bg-indigo-600" style={{width: `${analysis.confidence}%`}}></div>
+                             <p className="text-sm text-muted-foreground font-medium leading-relaxed bg-muted/50 rounded-lg p-4 border">{analysis.reasoning}</p>
+                             <div className="bg-muted/70 rounded-xl p-4 border">
+                               <div className="h-2 bg-muted rounded-full w-full overflow-hidden shadow-inner">
+                                   <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 shadow-sm" style={{width: `${analysis.confidence}%`}}></div>
                                </div>
                                <p className="text-xs text-indigo-600 font-black text-right mt-2">{analysis.confidence}% Confidence</p>
                              </div>
@@ -373,7 +373,7 @@ const Disputes: React.FC<DisputesProps> = ({ disputes }) => {
 
             </div>
 
-            <div className="p-6 border-t-2 border-border space-y-4 bg-muted">
+            <div className="p-6 border-t-2 border-border space-y-4 bg-gradient-to-br from-background to-muted/50">
                  {/* Modern Upload Section */}
                  <div className="space-y-3">
                    <label className="block text-xs font-black text-foreground uppercase tracking-widest flex items-center gap-2">
@@ -385,9 +385,9 @@ const Disputes: React.FC<DisputesProps> = ({ disputes }) => {
                    {uploadedFiles.length > 0 && (
                      <div className="space-y-2 mb-2">
                        {uploadedFiles.map((file, index) => (
-                         <div key={index} className="flex items-center justify-between bg-card border rounded-xl px-4 py-3 group transition-all">
+                         <div key={index} className="flex items-center justify-between bg-gradient-to-r from-muted to-muted/50 border rounded-xl px-4 py-3 shadow-sm group hover:shadow-md transition-all">
                            <div className="flex items-center gap-3 flex-1 min-w-0">
-                             <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center border border-red-200">
+                             <div className="w-8 h-8 bg-gradient-to-br from-red-50 to-red-100 rounded-lg flex items-center justify-center border border-red-200">
                                <FileText size={16} className="text-red-600" />
                              </div>
                              <div className="flex-1 min-w-0">
@@ -411,7 +411,7 @@ const Disputes: React.FC<DisputesProps> = ({ disputes }) => {
                    )}
 
                    {/* Modern Upload Button */}
-                   <label className="flex items-center justify-center gap-3 px-5 py-4 border-2 border-dashed border-border text-muted-foreground font-bold text-sm rounded-xl hover:bg-card hover:border-indigo-400 cursor-pointer transition-all group">
+                   <label className="flex items-center justify-center gap-3 px-5 py-4 border-2 border-dashed border-border text-muted-foreground font-bold text-sm rounded-xl hover:bg-muted hover:border-indigo-400 cursor-pointer transition-all hover:shadow-md group">
                      <div className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center group-hover:bg-indigo-100 transition-colors">
                        <Upload size={18} className="text-muted-foreground group-hover:text-indigo-600" />
                      </div>
@@ -435,7 +435,7 @@ const Disputes: React.FC<DisputesProps> = ({ disputes }) => {
                    <Button
                      className={`flex-1 ${
                        uploadedFiles.length > 0
-                         ? 'bg-indigo-600 hover:bg-indigo-700'
+                         ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:scale-105'
                          : ''
                      }`}
                      disabled={uploadedFiles.length === 0}

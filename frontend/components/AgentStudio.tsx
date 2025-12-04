@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { Bot, Plus, Settings, Phone, TrendingUp, Clock, Sparkles } from 'lucide-react';
 import AgentFlowConfig, { ElevenLabsAgentConfig } from './AgentFlowConfig';
+import { Button } from './ui/button';
+import { Card } from './ui/card';
+import { Badge } from './ui/badge';
 
 interface Agent {
   id: string;
@@ -95,35 +98,35 @@ const AgentStudio: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Voice Agent Library</h1>
-          <p className="text-slate-500 text-sm mt-1">ElevenLabs-powered voice agents for real-time dispute resolution</p>
+          <h1 className="text-2xl font-bold text-foreground">Voice Agent Library</h1>
+          <p className="text-muted-foreground text-sm mt-1">ElevenLabs-powered voice agents for real-time dispute resolution</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-lg text-sm font-semibold hover:bg-slate-800 shadow-sm">
+        <Button className="flex items-center gap-2">
           <Plus size={16} /> Create New Agent
-        </button>
+        </Button>
       </div>
 
       {/* Agent List */}
-      <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+      <Card>
         <table className="w-full text-left border-collapse">
-          <thead className="bg-slate-50 border-b border-slate-200">
+          <thead className="bg-muted border-b border-border">
             <tr>
-              <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Agent</th>
-              <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Calls</th>
-              <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Win Rate</th>
-              <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Avg Duration</th>
-              <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider"></th>
+              <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Agent</th>
+              <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Status</th>
+              <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Calls</th>
+              <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Win Rate</th>
+              <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Avg Duration</th>
+              <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider"></th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-border">
             {MOCK_AGENTS.map((agent) => {
               const colors = getColorClasses(agent.color);
               return (
                 <tr
                   key={agent.id}
                   onClick={() => setConfigureAgent(agent)}
-                  className="hover:bg-slate-50 cursor-pointer transition-colors group"
+                  className="hover:bg-muted/50 cursor-pointer transition-colors group"
                 >
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-4">
@@ -131,52 +134,53 @@ const AgentStudio: React.FC = () => {
                         <Bot size={24} />
                       </div>
                       <div className="flex-1">
-                        <div className="text-lg font-bold text-slate-900 mb-1">{agent.name}</div>
-                        <div className="text-sm text-slate-600">{agent.description}</div>
+                        <div className="text-lg font-bold text-foreground mb-1">{agent.name}</div>
+                        <div className="text-sm text-muted-foreground">{agent.description}</div>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-5">
-                    <div className="flex items-center gap-2 text-emerald-600">
+                    <Badge variant="default" className="gap-2">
                       <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                      <span className="text-sm font-semibold">Live</span>
-                    </div>
+                      <span>Live</span>
+                    </Badge>
                   </td>
                   <td className="px-6 py-5">
-                    <span className="text-lg font-bold text-slate-900">{agent.callsHandled.toLocaleString()}</span>
+                    <span className="text-lg font-bold text-foreground">{agent.callsHandled.toLocaleString()}</span>
                   </td>
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-3">
-                      <div className="w-24 h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="w-24 h-2.5 bg-muted rounded-full overflow-hidden">
                         <div
                           style={{ width: `${agent.successRate}%` }}
                           className="h-full bg-blue-600"
                         ></div>
                       </div>
-                      <span className="text-lg font-bold text-slate-900 w-12">{agent.successRate}%</span>
+                      <span className="text-lg font-bold text-foreground w-12">{agent.successRate}%</span>
                     </div>
                   </td>
                   <td className="px-6 py-5">
-                    <span className="text-lg font-bold text-slate-900">{agent.avgCallDuration}</span>
+                    <span className="text-lg font-bold text-foreground">{agent.avgCallDuration}</span>
                   </td>
                   <td className="px-6 py-5">
-                    <button
+                    <Button
                       onClick={(e) => {
                         e.stopPropagation();
                         setConfigureAgent(agent);
                       }}
-                      className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-lg text-sm font-semibold hover:bg-slate-800 opacity-0 group-hover:opacity-100 transition-opacity"
+                      size="sm"
+                      className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
                     >
                       <Settings size={14} />
                       Configure
-                    </button>
+                    </Button>
                   </td>
                 </tr>
               );
             })}
           </tbody>
         </table>
-      </div>
+      </Card>
 
       {/* Agent Configuration Modal */}
       {configureAgent && (

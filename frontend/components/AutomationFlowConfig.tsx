@@ -85,11 +85,11 @@ const AutomationFlowConfig: React.FC<AutomationFlowConfigProps> = ({
   return (
     <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-6" onClick={onClose}>
       <div
-        className="bg-white rounded-xl w-full max-w-3xl shadow-2xl max-h-[90vh] overflow-auto"
+        className="bg-card rounded-xl w-full max-w-3xl shadow-2xl max-h-[90vh] overflow-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-slate-200 sticky top-0 bg-white z-10">
+        <div className="flex items-center justify-between p-6 border-b border-border sticky top-0 bg-card z-10">
           <div>
             <h2 className="text-2xl font-bold text-slate-900">{automationName}</h2>
             <p className="text-sm text-slate-500 mt-1">Configure automation settings</p>
@@ -411,7 +411,7 @@ const AutomationFlowConfig: React.FC<AutomationFlowConfigProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="flex gap-3 p-6 border-t border-slate-200 bg-slate-50 sticky bottom-0">
+        <div className="flex gap-3 p-6 border-t border-border bg-muted sticky bottom-0">
           <button
             onClick={handleSave}
             className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-slate-900 text-white rounded-lg font-semibold hover:bg-slate-800"
@@ -421,7 +421,7 @@ const AutomationFlowConfig: React.FC<AutomationFlowConfigProps> = ({
           </button>
           <button
             onClick={onClose}
-            className="px-4 py-3 border border-slate-200 rounded-lg text-slate-600 hover:bg-white font-semibold"
+            className="px-4 py-3 border border-border rounded-lg text-muted-foreground hover:bg-card font-semibold"
           >
             Cancel
           </button>

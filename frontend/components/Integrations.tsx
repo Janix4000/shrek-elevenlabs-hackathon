@@ -1,6 +1,9 @@
 import React from 'react';
 import { Check, ExternalLink, Settings, AlertCircle, Plus } from 'lucide-react';
 import { CreditCard } from 'lucide-react';
+import { Button } from './ui/button';
+import { Card, CardContent } from './ui/card';
+import { Badge } from './ui/badge';
 
 interface Integration {
   id: string;
@@ -303,79 +306,84 @@ const Integrations: React.FC = () => {
     <div className="space-y-6">
       {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-xl p-6 border border-slate-200">
-          <div className="text-sm text-slate-500 mb-2">Connected</div>
-          <div className="text-3xl font-bold text-slate-900">{connectedCount}</div>
-        </div>
-        <div className="bg-white rounded-xl p-6 border border-slate-200">
-          <div className="text-sm text-slate-500 mb-2">Transactions Synced</div>
-          <div className="text-3xl font-bold text-slate-900">378k</div>
-        </div>
-        <div className="bg-white rounded-xl p-6 border border-slate-200">
-          <div className="text-sm text-slate-500 mb-2">Avg Sync Time</div>
-          <div className="text-3xl font-bold text-slate-900">5 min</div>
-        </div>
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-sm text-muted-foreground mb-2">Connected</div>
+            <div className="text-3xl font-bold text-foreground">{connectedCount}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-sm text-muted-foreground mb-2">Transactions Synced</div>
+            <div className="text-3xl font-bold text-foreground">378k</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-sm text-muted-foreground mb-2">Avg Sync Time</div>
+            <div className="text-3xl font-bold text-foreground">5 min</div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Connected Integrations */}
       <div>
         <div className="mb-4">
-          <h2 className="text-lg font-semibold text-slate-900">Active Integrations</h2>
+          <h2 className="text-lg font-semibold text-foreground">Active Integrations</h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {INTEGRATIONS.filter(i => i.connected).map((integration) => (
-          <div
-            key={integration.id}
-            className="bg-white rounded-xl border border-slate-200 p-5"
-          >
-            {/* Header */}
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex items-center gap-3">
-                {integration.logoComponent}
-                <div>
-                  <h3 className="font-semibold text-slate-900">{integration.name}</h3>
-                  <p className="text-xs text-slate-500">
-                    {['salesforce', 'hubspot', 'zendesk', 'intercom'].includes(integration.id) ? 'CRM & Support' : 'Payment Processor'}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700">
-                <Check size={12} />
-                Active
-              </div>
-            </div>
-
-            {/* Metrics */}
-            {integration.metrics && (
-              <div className="flex items-center gap-4 mb-3 pb-3 border-b border-slate-100">
-                {integration.metrics.map((metric, idx) => (
-                  <div key={idx}>
-                    <p className="text-xs text-slate-500">{metric.label}</p>
-                    <p className="text-sm font-semibold text-slate-900">{metric.value}</p>
+          <Card key={integration.id}>
+            <CardContent className="p-5">
+              {/* Header */}
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  {integration.logoComponent}
+                  <div>
+                    <h3 className="font-semibold text-foreground">{integration.name}</h3>
+                    <p className="text-xs text-muted-foreground">
+                      {['salesforce', 'hubspot', 'zendesk', 'intercom'].includes(integration.id) ? 'CRM & Support' : 'Payment Processor'}
+                    </p>
                   </div>
-                ))}
+                </div>
+                <Badge variant="default" className="gap-1">
+                  <Check size={12} />
+                  Active
+                </Badge>
               </div>
-            )}
 
-            {/* Last Sync */}
-            {integration.lastSync && (
-              <div className="text-xs text-slate-500 mb-3">
-                Last synced: {integration.lastSync}
+              {/* Metrics */}
+              {integration.metrics && (
+                <div className="flex items-center gap-4 mb-3 pb-3 border-b border-border">
+                  {integration.metrics.map((metric, idx) => (
+                    <div key={idx}>
+                      <p className="text-xs text-muted-foreground">{metric.label}</p>
+                      <p className="text-sm font-semibold text-foreground">{metric.value}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Last Sync */}
+              {integration.lastSync && (
+                <div className="text-xs text-muted-foreground mb-3">
+                  Last synced: {integration.lastSync}
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex items-center gap-2">
+                <Button variant="secondary" size="sm" className="flex-1 gap-2">
+                  <Settings size={14} />
+                  Configure
+                </Button>
+                <Button variant="secondary" size="sm">
+                  <ExternalLink size={14} />
+                </Button>
               </div>
-            )}
-
-            {/* Actions */}
-            <div className="flex items-center gap-2">
-              <button className="flex-1 px-3 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2">
-                <Settings size={14} />
-                Configure
-              </button>
-              <button className="px-3 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-lg text-sm font-medium transition-colors">
-                <ExternalLink size={14} />
-              </button>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         ))}
         </div>
       </div>
@@ -383,29 +391,31 @@ const Integrations: React.FC = () => {
       {/* Available Integrations */}
       <div>
         <div className="mb-4">
-          <h2 className="text-lg font-semibold text-slate-900">Available Integrations</h2>
+          <h2 className="text-lg font-semibold text-foreground">Available Integrations</h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {INTEGRATIONS.filter(i => !i.connected).map((integration) => (
-            <div
+            <Card
               key={integration.id}
-              className="bg-white rounded-xl border border-slate-200 hover:border-slate-300 transition-all p-4"
+              className="hover:border-primary/50 transition-all"
             >
-              <div className="flex items-center gap-3 mb-3">
-                {integration.logoComponent}
-                <div className="flex-1">
-                  <h3 className="font-semibold text-slate-900 text-sm">{integration.name}</h3>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3 mb-3">
+                  {integration.logoComponent}
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-foreground text-sm">{integration.name}</h3>
+                  </div>
                 </div>
-              </div>
 
-              <p className="text-xs text-slate-600 mb-3">{integration.description}</p>
+                <p className="text-xs text-muted-foreground mb-3">{integration.description}</p>
 
-              <button className="w-full px-3 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2">
-                <Plus size={14} />
-                Connect
-              </button>
-            </div>
+                <Button className="w-full gap-2" size="sm">
+                  <Plus size={14} />
+                  Connect
+                </Button>
+              </CardContent>
+            </Card>
           ))}
         </div>
       </div>

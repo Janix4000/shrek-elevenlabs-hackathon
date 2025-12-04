@@ -3,6 +3,8 @@ import { KPIMetrics } from '../types';
 import { Clock, TrendingUp, AlertCircle, DollarSign, MoreHorizontal, Globe, ZoomIn, ZoomOut } from 'lucide-react';
 import { ComposableMap, Geographies, Geography, ZoomableGroup } from 'react-simple-maps';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Button } from './ui/button';
 
 interface DashboardProps {
   metrics: KPIMetrics;
@@ -14,15 +16,15 @@ const DonutChart = () => {
     const segments = [
         { color: '#3b82f6', percent: 39.04, offset: 0 },           // Blue - Fraud
         { color: '#0ea5e9', percent: 18.78, offset: 39.04 },       // Sky - Canceled Recurring
-        { color: '#1e293b', percent: 12.56, offset: 57.82 },       // Slate - Not As Described
+        { color: '#8b5cf6', percent: 12.56, offset: 57.82 },       // Violet - Not As Described
         { color: '#a855f7', percent: 9.85, offset: 70.38 },        // Purple - Product Not Received
-        { color: '#94a3b8', percent: 19.77, offset: 80.23 },       // Gray - Other (combined remaining)
+        { color: '#64748b', percent: 19.77, offset: 80.23 },       // Gray - Other (combined remaining)
     ];
 
     return (
         <div className="relative w-52 h-52">
             <svg viewBox="0 0 100 100" className="transform -rotate-90 w-full h-full">
-                <circle cx="50" cy="50" r="40" stroke="#f1f5f9" strokeWidth="20" fill="none" />
+                <circle cx="50" cy="50" r="40" stroke="hsl(var(--muted))" strokeWidth="20" fill="none" />
                 {segments.map((segment, i) => (
                     <circle
                         key={i}
@@ -38,8 +40,8 @@ const DonutChart = () => {
                 ))}
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                 <span className="text-xl font-extrabold text-slate-900">$418.3k</span>
-                 <span className="text-xs text-slate-400 font-medium">Total Value</span>
+                 <span className="text-xl font-extrabold text-foreground">$418.3k</span>
+                 <span className="text-xs text-muted-foreground font-medium">Total Value</span>
             </div>
         </div>
     );
@@ -61,125 +63,133 @@ const Dashboard: React.FC<DashboardProps> = ({ metrics }) => {
 
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
-        <p className="text-slate-500 text-sm mt-1">Overview of dispute resolution performance and metrics</p>
+        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-muted-foreground mt-2">Overview of dispute resolution performance and metrics</p>
       </div>
 
       {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 flex-shrink-0">
-        <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
-          <div className="flex items-center gap-2 text-slate-500 text-xs uppercase tracking-wider font-bold mb-3">
-            <DollarSign size={16} />
-            <span>Total Value</span>
-          </div>
-          <div className="text-3xl font-bold text-slate-900 mb-2">$4.2M</div>
-          <div className="text-xs text-emerald-600 font-semibold">↗ 12.3% vs last period</div>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 flex-shrink-0">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Value</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">$4.2M</div>
+            <p className="text-xs text-emerald-600 font-medium mt-1">↗ 12.3% vs last period</p>
+          </CardContent>
+        </Card>
 
-        <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
-          <div className="flex items-center gap-2 text-slate-500 text-xs uppercase tracking-wider font-bold mb-3">
-            <TrendingUp size={16} />
-            <span>Win Rate</span>
-          </div>
-          <div className="text-3xl font-bold text-slate-900 mb-2">82%</div>
-          <div className="text-xs text-emerald-600 font-semibold">↗ 4.2% vs last period</div>
-        </div>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Win Rate</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">82%</div>
+            <p className="text-xs text-emerald-600 font-medium mt-1">↗ 4.2% vs last period</p>
+          </CardContent>
+        </Card>
 
-        <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
-          <div className="flex items-center gap-2 text-slate-500 text-xs uppercase tracking-wider font-bold mb-3">
-            <Clock size={16} />
-            <span>Time Saved</span>
-          </div>
-          <div className="text-3xl font-bold text-slate-900 mb-2">3,452h</div>
-          <div className="text-xs text-emerald-600 font-semibold">↗ 8.7% vs last period</div>
-        </div>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Time Saved</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">3,452h</div>
+            <p className="text-xs text-emerald-600 font-medium mt-1">↗ 8.7% vs last period</p>
+          </CardContent>
+        </Card>
 
-        <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
-          <div className="flex items-center gap-2 text-slate-500 text-xs uppercase tracking-wider font-bold mb-3">
-            <AlertCircle size={16} />
-            <span>Fraud Rate</span>
-          </div>
-          <div className="text-3xl font-bold text-slate-900 mb-2">6.5%</div>
-          <div className="text-xs text-emerald-600 font-semibold">↗ 2.1% vs last period</div>
-        </div>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Fraud Rate</CardTitle>
+            <AlertCircle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">6.5%</div>
+            <p className="text-xs text-emerald-600 font-medium mt-1">↗ 2.1% vs last period</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Two Column Layout: Disputes by Reason and Win Rate Trend */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-shrink-0">
 
         {/* Disputes by Reason with Pie Chart */}
-        <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
-          <div className="mb-6">
-            <h3 className="font-bold text-slate-900 text-lg">Disputes by Reason</h3>
-            <p className="text-xs text-slate-500 mt-1">Last 12 Months</p>
-          </div>
-
-          <div className="flex items-center gap-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Disputes by Reason</CardTitle>
+            <CardDescription>Last 12 Months</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-8">
             {/* Table on the left */}
             <div className="flex-1">
               <table className="w-full text-left border-collapse">
-                <thead className="bg-slate-50 border-b border-slate-200">
+                <thead className="bg-muted border-b border-border">
                   <tr>
-                    <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Reason</th>
-                    <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Amount</th>
-                    <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Percentage</th>
+                    <th className="px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">Reason</th>
+                    <th className="px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider text-right">Amount</th>
+                    <th className="px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider text-right">Percentage</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
-                  <tr className="hover:bg-slate-50 transition-colors">
+                <tbody className="divide-y divide-border">
+                  <tr className="hover:bg-muted transition-colors">
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                        <span className="text-sm font-bold text-slate-900">Fraud</span>
+                        <span className="text-sm font-bold text-foreground">Fraud</span>
                       </div>
                     </td>
                     <td className="px-4 py-4 text-right">
-                      <span className="text-base font-bold text-slate-900">$163.3k</span>
+                      <span className="text-base font-bold text-foreground">$163.3k</span>
                     </td>
                     <td className="px-4 py-4 text-right">
-                      <span className="text-base font-bold text-slate-900">39.04%</span>
+                      <span className="text-base font-bold text-foreground">39.04%</span>
                     </td>
                   </tr>
-                  <tr className="hover:bg-slate-50 transition-colors">
+                  <tr className="hover:bg-muted transition-colors">
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-3 h-3 bg-sky-500 rounded-full"></div>
-                        <span className="text-sm font-bold text-slate-900">Canceled Recurring</span>
+                        <span className="text-sm font-bold text-foreground">Canceled Recurring</span>
                       </div>
                     </td>
                     <td className="px-4 py-4 text-right">
-                      <span className="text-base font-bold text-slate-900">$78.6k</span>
+                      <span className="text-base font-bold text-foreground">$78.6k</span>
                     </td>
                     <td className="px-4 py-4 text-right">
-                      <span className="text-base font-bold text-slate-900">18.78%</span>
+                      <span className="text-base font-bold text-foreground">18.78%</span>
                     </td>
                   </tr>
-                  <tr className="hover:bg-slate-50 transition-colors">
+                  <tr className="hover:bg-muted transition-colors">
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-3 h-3 bg-slate-800 rounded-full"></div>
-                        <span className="text-sm font-bold text-slate-900">Not As Described</span>
+                        <div className="w-3 h-3 bg-violet-500 rounded-full"></div>
+                        <span className="text-sm font-bold text-foreground">Not As Described</span>
                       </div>
                     </td>
                     <td className="px-4 py-4 text-right">
-                      <span className="text-base font-bold text-slate-900">$52.5k</span>
+                      <span className="text-base font-bold text-foreground">$52.5k</span>
                     </td>
                     <td className="px-4 py-4 text-right">
-                      <span className="text-base font-bold text-slate-900">12.56%</span>
+                      <span className="text-base font-bold text-foreground">12.56%</span>
                     </td>
                   </tr>
-                  <tr className="hover:bg-slate-50 transition-colors">
+                  <tr className="hover:bg-muted transition-colors">
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                        <span className="text-sm font-bold text-slate-900">Product Not Received</span>
+                        <span className="text-sm font-bold text-foreground">Product Not Received</span>
                       </div>
                     </td>
                     <td className="px-4 py-4 text-right">
-                      <span className="text-base font-bold text-slate-900">$41.2k</span>
+                      <span className="text-base font-bold text-foreground">$41.2k</span>
                     </td>
                     <td className="px-4 py-4 text-right">
-                      <span className="text-base font-bold text-slate-900">9.85%</span>
+                      <span className="text-base font-bold text-foreground">9.85%</span>
                     </td>
                   </tr>
                 </tbody>
@@ -190,20 +200,23 @@ const Dashboard: React.FC<DashboardProps> = ({ metrics }) => {
             <div className="flex-shrink-0 flex items-center justify-center">
               <DonutChart />
             </div>
-          </div>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Win Rate Trend Chart */}
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col">
-          <div className="flex justify-between items-center mb-6">
+        <Card className="flex flex-col">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div>
-              <h3 className="font-bold text-slate-900 text-lg">Win Rate Trend</h3>
-              <p className="text-xs text-slate-500 mt-1">Last 12 Months</p>
+              <CardTitle>Win Rate Trend</CardTitle>
+              <CardDescription>Last 12 Months</CardDescription>
             </div>
-            <button className="text-slate-400 hover:text-slate-600 transition-colors"><MoreHorizontal size={16} /></button>
-          </div>
-
-          {/* Bar Chart */}
+            <Button variant="ghost" size="icon">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </CardHeader>
+          <CardContent className="flex-1">
+            {/* Bar Chart */}
           <div className="h-[200px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
@@ -263,61 +276,70 @@ const Dashboard: React.FC<DashboardProps> = ({ metrics }) => {
             </ResponsiveContainer>
           </div>
 
-          <div className="mt-3 pt-3 border-t border-slate-200">
+          <div className="mt-3 pt-3 border-t">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-xs text-slate-500">Current Rate</div>
-                <div className="text-xl font-bold text-slate-900">82%</div>
+                <div className="text-xs text-muted-foreground">Current Rate</div>
+                <div className="text-xl font-bold">82%</div>
               </div>
               <div className="text-right">
-                <div className="text-xs text-slate-500">vs Last Month</div>
+                <div className="text-xs text-muted-foreground">vs Last Month</div>
                 <div className="text-base font-bold text-emerald-600">↗ 1.2%</div>
               </div>
             </div>
           </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Geographical Win Rates Map */}
       <div style={{ minHeight: '800px' }}>
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col" style={{ height: '800px' }}>
-          <div className="flex justify-between items-center mb-6">
+        <Card className="flex flex-col" style={{ height: '800px' }}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div>
-              <h3 className="font-bold text-slate-900 text-lg flex items-center gap-2">
-                <Globe size={18} className="text-blue-500" />
+              <CardTitle className="flex items-center gap-2">
+                <Globe className="h-5 w-5 text-blue-500" />
                 Win Rates by Country
-              </h3>
-              <p className="text-xs text-slate-500 mt-1">Last 6 Months</p>
+              </CardTitle>
+              <CardDescription>Last 6 Months</CardDescription>
             </div>
-            <button className="text-slate-400 hover:text-slate-600 transition-colors"><MoreHorizontal size={16} /></button>
-          </div>
-
-          <div className="relative flex-1 min-h-0">
+            <Button variant="ghost" size="icon">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </CardHeader>
+          <CardContent className="flex-1 flex flex-col overflow-hidden">
+            <div className="relative flex-1 min-h-0 overflow-hidden">
             {/* Zoom Controls */}
-            <div className="absolute top-2 right-2 z-10 flex flex-col gap-1 bg-white rounded-lg shadow-md border border-slate-200 p-1">
-              <button
+            <div className="absolute top-2 right-2 z-10 flex flex-col gap-1 bg-background rounded-lg shadow-md border p-1">
+              <Button
                 onClick={handleZoomIn}
                 disabled={mapZoom >= 4}
-                className="p-1.5 hover:bg-slate-100 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
                 title="Zoom In"
               >
-                <ZoomIn size={16} className="text-slate-700" />
-              </button>
-              <button
+                <ZoomIn className="h-4 w-4" />
+              </Button>
+              <Button
                 onClick={handleResetZoom}
-                className="px-1.5 py-1 text-[10px] font-medium text-slate-700 hover:bg-slate-100 rounded transition-colors"
+                variant="ghost"
+                size="sm"
+                className="h-8 text-[10px] font-medium"
                 title="Reset Zoom"
               >
                 {Math.round(mapZoom * 100)}%
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={handleZoomOut}
                 disabled={mapZoom <= 1}
-                className="p-1.5 hover:bg-slate-100 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
                 title="Zoom Out"
               >
-                <ZoomOut size={16} className="text-slate-700" />
-              </button>
+                <ZoomOut className="h-4 w-4" />
+              </Button>
             </div>
 
             <ComposableMap
@@ -415,27 +437,28 @@ const Dashboard: React.FC<DashboardProps> = ({ metrics }) => {
               </Geographies>
               </ZoomableGroup>
             </ComposableMap>
-          </div>
+            </div>
 
-          <div className="mt-4 flex items-center justify-center gap-8 text-sm">
+            <div className="mt-4 flex items-center justify-center gap-8 text-sm">
             <div className="flex items-center gap-3">
               <div className="w-4 h-4 rounded-full bg-emerald-500"></div>
-              <span className="text-slate-700 font-semibold">≥50%</span>
+              <span className="font-semibold">≥50%</span>
             </div>
             <div className="flex items-center gap-3">
               <div className="w-4 h-4 rounded-full bg-blue-500"></div>
-              <span className="text-slate-700 font-semibold">40-49%</span>
+              <span className="font-semibold">40-49%</span>
             </div>
             <div className="flex items-center gap-3">
               <div className="w-4 h-4 rounded-full bg-orange-500"></div>
-              <span className="text-slate-700 font-semibold">35-39%</span>
+              <span className="font-semibold">35-39%</span>
             </div>
             <div className="flex items-center gap-3">
               <div className="w-4 h-4 rounded-full bg-red-500"></div>
-              <span className="text-slate-700 font-semibold">&lt;35%</span>
+              <span className="font-semibold">&lt;35%</span>
             </div>
-          </div>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

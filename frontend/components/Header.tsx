@@ -1,5 +1,7 @@
 import React from 'react';
 import { ViewState } from '../types';
+import { Button } from './ui/button';
+import { Shield } from 'lucide-react';
 
 interface HeaderProps {
   currentView: ViewState;
@@ -16,45 +18,43 @@ const Header: React.FC<HeaderProps> = ({ currentView, onChangeView }) => {
   ];
 
   return (
-    <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
-      <div className="max-w-[2000px] mx-auto px-4 h-14 flex items-center justify-between">
+    <header className="bg-background border-b sticky top-0 z-50">
+      <div className="max-w-[2000px] mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo & Nav */}
         <div className="flex items-center gap-8">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center">
-               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-               </svg>
+            <div className="w-9 h-9 bg-primary rounded-lg flex items-center justify-center">
+              <Shield className="w-5 h-5 text-primary-foreground" />
             </div>
-            <span className="font-bold text-slate-900 text-lg tracking-tight">ChargeGuard</span>
-            <span className="text-slate-300 text-sm">|</span>
-            <svg width="60" height="32" viewBox="0 0 60 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <text x="0" y="24" fontFamily="Arial, sans-serif" fontSize="24" fontWeight="bold" fill="#000000">Huel</text>
-            </svg>
+            <span className="font-bold text-foreground text-xl tracking-tight">ChargeGuard</span>
+            <span className="text-muted-foreground text-sm">|</span>
+            <span className="font-bold text-xl">Huel</span>
           </div>
 
           <nav className="hidden md:flex items-center gap-1">
             {navItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => onChangeView(item.id)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  currentView === item.id
-                    ? 'text-slate-900 bg-slate-100'
-                    : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
-                }`}
-              >
-                {item.label}
-              </button>
+              <div key={item.id} className="relative">
+                <Button
+                  onClick={() => onChangeView(item.id)}
+                  variant={currentView === item.id ? "secondary" : "ghost"}
+                  size="sm"
+                  className="font-medium"
+                >
+                  {item.label}
+                </Button>
+                {currentView === item.id && (
+                  <div className="absolute bottom-0 left-2 right-2 h-1 bg-blue-500 rounded-full" />
+                )}
+              </div>
             ))}
           </nav>
         </div>
 
         {/* Right Actions */}
         <div className="flex items-center gap-4">
-          <button className="w-8 h-8 bg-slate-900 rounded-full flex items-center justify-center hover:bg-slate-800 transition-colors">
-            <span className="text-white font-bold text-sm">H</span>
-          </button>
+          <Button size="icon" variant="outline" className="rounded-full">
+            <span className="font-bold text-sm">H</span>
+          </Button>
         </div>
       </div>
     </header>
