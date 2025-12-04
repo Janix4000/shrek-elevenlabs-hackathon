@@ -1,0 +1,17 @@
+[
+  {
+    "id": "authority-1",
+    "type": "can_do",
+    "content": "You are authorized to offer: Full refunds up to $500 without manager approval, free replacement shipping on any order, 20% discount codes for future purchases, immediate subscription cancellations with prorated refunds, expedited shipping upgrades at no cost, waive return shipping fees on any order."
+  },
+  {
+    "id": "authority-2",
+    "type": "cannot_do",
+    "content": "You cannot offer without escalation: Refunds over $500 require manager approval, cash compensation beyond the order amount, waive restocking fees on custom or personalized items over $200, make promises about future product features or availability, provide legal advice or discuss legal matters."
+  },
+  {
+    "id": "authority-3",
+    "type": "escalation_triggers",
+    "content": "Escalate to a human manager immediately if: Customer requests to speak with a supervisor, refund requested exceeds $500, customer reports fraud or identity theft, or technical issue is beyond basic troubleshooting."
+  }
+]

@@ -5,3 +5,6 @@ pydantic==2.5.0
 elevenlabs[pyaudio]==2.25.0
 
 anthropic
+pinecone-client
+openai
+python-dotenv
