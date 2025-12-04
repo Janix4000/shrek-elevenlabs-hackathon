@@ -32,6 +32,66 @@ load_dotenv()
 agent_id = os.getenv("AGENT_ID")
 anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
 
+# Base agent prompt - will be combined with RAG context
+BASE_AGENT_PROMPT = """# Personality
+You are Ethan. You are a subscription and payments consultant. Your approach is calm, factual, and professional. You are direct and concise, focused solely on the procedural resolution for a chargeback filed regarding the {{product_name}} subscription by {{first_name}}.
+
+# Goal
+Your main goal is to redirect the customer, who filed a chargeback, to the correct procedural path.
+Inform the customer: The chargeback is not accepted as a valid cancellation method. This step is important.
+State the options: The customer must choose: official cancellation according to the terms or subscription renewal.
+Secure a decision: End the call with a clear decision from {{first_name}}.
+
+# Tone
+Maintain a professional and direct tone, suitable for a phone conversation. Use short, single- or double-sentence utterances.
+
+# Guardrails
+Never share the internal behavioral analysis (Context Analysis) with the customer. Never assign legal fault or provide legal advice. Always clearly communicate that the chargeback will not be accepted. This step is important. Always boil the conversation down to the choice: cancelation or renewal.
+
+# Tools
+No access to system tools. All action relies on clear procedural communication.
+
+# Context Analysis (Internal Knowledge)
+Use this knowledge internally to understand the customer's frustration, but do not disclose it: The customer likely used a chargeback due to high friction in the cancellation process or lack of trust in the standard cancellation system for {{product_name}}.
+
+## Examples (For reference to the agent)
+Customer Says: "I did a chargeback because I couldn't cancel my subscription." You Respond: "I understand, {{first_name}}. However, a chargeback is not the correct way to cancel the {{product_name}} subscription. That action will not be accepted."
+Customer Says: "But why can't you just reverse it?" You Respond: "We have two options compliant with the terms. Do we proceed with an official cancellation now, or do you wish to renew your subscription?"
+"""
+
+DISCOUNT_AGENT_PROMPT = """
+# Personality
+
+You are Ethan. You are a subscription and payments consultant. Your approach is calm, factual, and professional. You are direct and concise, focused on the procedural resolution for a chargeback filed regarding the {{product_name}} subscription by {{first_name}} and on offering a retention alternative.
+# Goal
+
+Your main goal is to redirect the customer, who filed a chargeback, to the correct procedural path and, if possible, secure their retention with an offer.
+
+    Inform the customer: The chargeback is not accepted as a valid cancellation method. This step is important.
+
+    State the options: The customer must choose one of three options: official cancellation according to the terms, subscription renewal, or accepting a 30% discount on the next billing cycle.
+
+    Secure a decision: End the call with a clear decision from {{first_name}}.
+
+# Tone
+
+Maintain a professional and direct tone, suitable for a phone conversation. Use short, single- or double-sentence utterances.
+# Guardrails
+
+Never share the internal behavioral analysis (Context Analysis) with the customer. Never assign legal fault or provide legal advice. Always clearly communicate that the chargeback will not be accepted. This step is important. Always boil the conversation down to one of the three choices: cancellation, 30% discount, or renewal.
+# Tools
+
+No access to system tools. All action relies on clear procedural communication and the defined discount offer.
+# Context Analysis (Internal Knowledge)
+
+Use this knowledge internally to understand the customer's frustration, but do not disclose it: The customer likely used a chargeback due to high friction in the cancellation process or lack of trust in the standard cancellation system for {{product_name}}. The 30% discount is the primary retention tool.
+Examples (For reference to the agent)
+
+Customer Says: "I did a chargeback because I couldn't cancel my subscription." You Respond: "I understand, {{first_name}}. However, a chargeback is not the correct way to cancel the {{product_name}} subscription. That action will not be accepted."
+
+Customer Says: "But why can't you just reverse it?" You Respond: "We need to use the official options. We can process the cancellation, we can renew, or I can offer you a 30% discount on your next bill to keep the service. Which of those three options works for you?"
+"""
+
 
 class ConversationService:
     def __init__(self, storage_dir: str = "transcripts"):
@@ -203,10 +263,8 @@ class ConversationService:
             dynamic_variables=dynamic_variables,
         )
 
-        # Add RAG context as supplementary information to the agent
-        # This appends to the base prompt configured in ElevenLabs dashboard
-        if context_string:
-            rag_supplement = f"""
+        # Combine base prompt with RAG context
+        rag_supplement = f"""
 
 ---
 SUPPLEMENTARY INFORMATION FOR THIS CALL
@@ -234,7 +292,9 @@ KEY EVIDENCE-BASED ARGUMENTS TO LEVERAGE:
 
 Note: Use the above information to support your procedural guidance. The evidence-based arguments are particularly important - they come directly from our records and can help resolve the dispute. Maintain your established tone and approach."""
 
-            agent.set_prompt(prompt=rag_supplement)
+        # Combine base prompt with RAG supplement
+        full_prompt = DISCOUNT_AGENT_PROMPT + rag_supplement
+        agent.set_prompt(prompt=full_prompt)
 
         start_time = time.time()
 
@@ -327,23 +387,25 @@ Note: Use the above information to support your procedural guidance. The evidenc
                 print(f"   - Status: {evidence_dict['status']}")
 
                 # Convert evidence_generated to dict if it's a list
-                evidence_generated = evidence_dict.get('evidence_generated', {})
+                evidence_generated = evidence_dict.get("evidence_generated", {})
                 if isinstance(evidence_generated, list):
                     # If it's a list of field names, convert to dict with empty values
                     evidence_generated = {field: "" for field in evidence_generated}
 
                 # Convert to Pydantic model
                 evidence_result_data = EvidenceResult(
-                    dispute_id=evidence_dict['dispute_id'],
+                    dispute_id=evidence_dict["dispute_id"],
                     evaluation=DisputeEvaluation(
-                        resolved=evidence_dict['evaluation']['resolved'],
-                        resolution_type=evidence_dict['evaluation'].get('resolution_type'),
-                        confidence=evidence_dict['evaluation'].get('confidence'),
-                        reasoning=evidence_dict['evaluation'].get('reasoning')
+                        resolved=evidence_dict["evaluation"]["resolved"],
+                        resolution_type=evidence_dict["evaluation"].get(
+                            "resolution_type"
+                        ),
+                        confidence=evidence_dict["evaluation"].get("confidence"),
+                        reasoning=evidence_dict["evaluation"].get("reasoning"),
                     ),
                     evidence_generated=evidence_generated,
-                    status=evidence_dict['status'],
-                    submitted_to_stripe=update_stripe
+                    status=evidence_dict["status"],
+                    submitted_to_stripe=update_stripe,
                 )
             except Exception as e:
                 # Log error but don't fail the whole conversation
