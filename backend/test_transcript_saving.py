@@ -24,27 +24,17 @@ def main():
     print("Test 1: Successful Conversation (Fake)")
     print("-" * 80)
 
-    request = ConversationRequest(
-        user_info=UserInfo(
-            first_name="Test",
-            last_name="User",
-            phone_number="+1234567890"
-        ),
-        chargeback_info=ChargebackInfo(
-            charge_id="ch_3SaQFuAITa6PCFHj0dnBlMJP",
-            product_name="Premium Digital Workspace",
-            reason="subscription_canceled"
-        )
-    )
+    # Use a test charge_id
+    charge_id = "ch_3SaQFuAITa6PCFHj0dnBlMJP"
 
     # Create conversation and run with fake_conv=True (no real call)
-    conv_id = service.create_conversation(request)
+    conv_id = service.create_conversation(charge_id)
     print(f"  Conversation ID: {conv_id}")
     print(f"  Status: {service.get_conversation_result(conv_id).status}")
 
     # Run the conversation
     print(f"  Running fake conversation...")
-    service.run_conversation(conv_id, request, fake_conv=True)
+    service.run_conversation(conv_id, fake_conv=True)
 
     # Check result
     result = service.get_conversation_result(conv_id)

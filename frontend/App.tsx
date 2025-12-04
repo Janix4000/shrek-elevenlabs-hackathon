@@ -19,6 +19,7 @@ const MOCK_DISPUTES: Dispute[] = [
     orderItems: ['Huel Black Edition Vanilla x2'],
     date: 'Sep 12th, 2024',
     paymentSource: 'visa',
+    chargeId: 'ch_3SaQFuAITa6PCFHj0dnBlMJP', // Add charge ID for conversation
     transcript: `Agent: ChargeGuard connected.
 Agent: Hi Trisha, I see you've disputed the charge for Huel Black Edition. Can you tell me more?
 Customer: I never received them. Tracking says delivered but it wasn't there.

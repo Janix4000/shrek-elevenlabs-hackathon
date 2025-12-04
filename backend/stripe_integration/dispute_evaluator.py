@@ -21,7 +21,11 @@ class DisputeEvaluator:
     Uses Claude AI to analyze transcripts and generate professional evidence documentation.
     """
 
-    def __init__(self, stripe_api_key: Optional[str] = None, anthropic_api_key: Optional[str] = None):
+    def __init__(
+        self,
+        stripe_api_key: Optional[str] = None,
+        anthropic_api_key: Optional[str] = None,
+    ):
         """
         Initialize the Dispute Evaluator.
 
@@ -33,14 +37,14 @@ class DisputeEvaluator:
         self.anthropic_api_key = anthropic_api_key or os.getenv("ANTHROPIC_API_KEY")
 
         if not self.anthropic_api_key:
-            raise ValueError("Anthropic API key is required. Set ANTHROPIC_API_KEY env variable.")
+            raise ValueError(
+                "Anthropic API key is required. Set ANTHROPIC_API_KEY env variable."
+            )
 
         self.anthropic_client = Anthropic(api_key=self.anthropic_api_key)
 
     def evaluate_transcript(
-        self,
-        transcript: List[Dict[str, Any]],
-        charge_id: str
+        self, transcript: List[Dict[str, Any]], charge_id: str
     ) -> Dict[str, Any]:
         """
         Evaluate conversation transcript to determine dispute resolution outcome.
@@ -89,7 +93,7 @@ Return ONLY the JSON, no other text."""
         response = self.anthropic_client.messages.create(
             model="claude-sonnet-4-20250514",
             max_tokens=1000,
-            messages=[{"role": "user", "content": prompt}]
+            messages=[{"role": "user", "content": prompt}],
         )
 
         # Parse JSON response
@@ -101,7 +105,9 @@ Return ONLY the JSON, no other text."""
         # Remove markdown code blocks if present
         if response_text.startswith("```"):
             # Extract content between ```json and ``` or between ``` and ```
-            match = re.search(r'```(?:json)?\s*\n?(.*?)\n?```', response_text, re.DOTALL)
+            match = re.search(
+                r"```(?:json)?\s*\n?(.*?)\n?```", response_text, re.DOTALL
+            )
             if match:
                 response_text = match.group(1).strip()
 
@@ -118,7 +124,7 @@ Return ONLY the JSON, no other text."""
         field_name: str,
         charge_metadata: Dict[str, Any],
         transcript: List[Dict[str, Any]],
-        evaluation: Dict[str, Any]
+        evaluation: Dict[str, Any],
     ) -> str:
         """
         Generate professional evidence text for a specific field using Claude AI.
@@ -132,7 +138,9 @@ Return ONLY the JSON, no other text."""
         Returns:
             Professional evidence text for the field
         """
-        transcript_summary = self._format_transcript_for_analysis(transcript, max_messages=10)
+        transcript_summary = self._format_transcript_for_analysis(
+            transcript, max_messages=10
+        )
 
         # Field-specific prompts
         field_prompts = {
@@ -142,12 +150,12 @@ Return ONLY the JSON, no other text."""
             "product_description": "Write a detailed product description including features and billing terms.",
             "refund_policy_disclosure": "Explain how the refund policy was disclosed to the customer.",
             "refund_refusal_explanation": "Provide a detailed explanation of why a refund cannot be issued, citing evidence.",
-            "uncategorized_text": "Generate comprehensive dispute evidence including email history, usage metrics, and merchant position."
+            "uncategorized_text": "Generate comprehensive dispute evidence including email history, usage metrics, and merchant position.",
         }
 
         field_prompt = field_prompts.get(
             field_name,
-            f"Generate professional evidence text for the '{field_name}' field."
+            f"Generate professional evidence text for the '{field_name}' field.",
         )
 
         prompt = f"""You are a dispute evidence specialist. Generate professional, factual evidence text for Stripe dispute submission.
@@ -180,7 +188,7 @@ Generate the evidence text now:"""
         response = self.anthropic_client.messages.create(
             model="claude-sonnet-4-20250514",
             max_tokens=4000,
-            messages=[{"role": "user", "content": prompt}]
+            messages=[{"role": "user", "content": prompt}],
         )
 
         return response.content[0].text
@@ -189,7 +197,8 @@ Generate the evidence text now:"""
         self,
         charge_id: str,
         transcript: List[Dict[str, Any]],
-        submit_immediately: bool = False
+        submit_immediately: bool = False,
+        send_to_stripe: bool = True,
     ) -> Dict[str, Any]:
         """
         Complete workflow: Evaluate transcript and submit evidence to Stripe.
@@ -238,7 +247,7 @@ Generate the evidence text now:"""
             "product_description",
             "refund_policy_disclosure",
             "refund_refusal_explanation",
-            "uncategorized_text"
+            "uncategorized_text",
         ]
 
         evidence = {}
@@ -253,49 +262,48 @@ Generate the evidence text now:"""
 
         # Add simple fields from metadata
         evidence["billing_address"] = metadata.get(
-            'billing_address',
-            'Address on file with payment provider'
+            "billing_address", "Address on file with payment provider"
         )
-        evidence["customer_email_address"] = metadata.get('customer_email', 'N/A')
-        evidence["customer_name"] = metadata.get('customer_name', 'N/A')
-        evidence["customer_purchase_ip"] = metadata.get('purchase_ip', 'N/A')
+        evidence["customer_email_address"] = metadata.get("customer_email", "N/A")
+        evidence["customer_name"] = metadata.get("customer_name", "N/A")
+        evidence["customer_purchase_ip"] = metadata.get("purchase_ip", "N/A")
         evidence["service_date"] = metadata.get(
-            'subscription_start',
-            metadata.get('billing_period_start', 'N/A')
+            "subscription_start", metadata.get("billing_period_start", "N/A")
         )
+        if send_to_stripe:
+            print(f"\n📤 Submitting evidence to Stripe...")
 
-        print(f"\n📤 Submitting evidence to Stripe...")
+            # Submit evidence to Stripe
+            updated_dispute = stripe.Dispute.modify(
+                dispute_id, evidence=evidence, submit=submit_immediately
+            )
 
-        # Submit evidence to Stripe
-        updated_dispute = stripe.Dispute.modify(
-            dispute_id,
-            evidence=evidence,
-            submit=submit_immediately
-        )
-
-        print(f"✅ Evidence {'submitted' if submit_immediately else 'staged'} successfully!")
+            print(
+                f"✅ Evidence {'submitted' if submit_immediately else 'staged'} successfully!"
+            )
+        else:
+            print(f"\n⚠️  Evidence submission skipped (send_to_stripe=False).")
+            updated_dispute = dispute  # No update
 
         return {
             "evaluation": evaluation,
             "dispute": updated_dispute,
             "evidence_generated": evidence_generated,
             "dispute_id": dispute_id,
-            "status": updated_dispute.status
+            "status": updated_dispute.status,
         }
 
     def _format_transcript_for_analysis(
-        self,
-        transcript: List[Dict[str, Any]],
-        max_messages: Optional[int] = None
+        self, transcript: List[Dict[str, Any]], max_messages: Optional[int] = None
     ) -> str:
         """Format transcript for Claude analysis."""
         messages = transcript[:max_messages] if max_messages else transcript
 
         formatted = []
         for msg in messages:
-            role = msg.get('role', 'unknown').upper()
-            text = msg.get('message', msg.get('text', ''))
-            time = msg.get('time_in_call_secs', msg.get('timestamp', 0))
+            role = msg.get("role", "unknown").upper()
+            text = msg.get("message", msg.get("text", ""))
+            time = msg.get("time_in_call_secs", msg.get("timestamp", 0))
             formatted.append(f"[{time:.1f}s] {role}: {text}")
 
         return "\n".join(formatted)

@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { Dispute, DisputeStatus, PaymentSource } from '../types';
-import { XCircle, Database, ArrowRight, FileText, Sparkles, Upload, X, Search } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Dispute, DisputeStatus, PaymentSource, ConversationResult, ConversationStatus } from '../types';
+import { XCircle, Database, ArrowRight, FileText, Sparkles, Upload, X, Search, Phone } from 'lucide-react';
 import { analyzeDisputeTranscript } from '../services/geminiService';
+import { conversationService } from '../services/conversationService';
 
 interface DisputesProps {
   disputes: Dispute[];
@@ -60,11 +61,43 @@ const Disputes: React.FC<DisputesProps> = ({ disputes }) => {
   const [activeTab, setActiveTab] = useState('All Disputes');
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [conversationResult, setConversationResult] = useState<ConversationResult | null>(null);
+  const [isCallingCustomer, setIsCallingCustomer] = useState(false);
 
   const handleSelect = (dispute: Dispute) => {
     setSelectedDispute(dispute);
     setAnalysis(null);
     setUploadedFiles([]);
+    setConversationResult(null);
+  };
+
+  const handleCallCustomer = async () => {
+    if (!selectedDispute?.chargeId) return;
+
+    setIsCallingCustomer(true);
+    setConversationResult(null);
+
+    try {
+      // Start the conversation
+      const startResponse = await conversationService.startConversation(
+        selectedDispute.chargeId,
+        true // Use fake_conv=true for testing
+      );
+
+      // Start polling for completion
+      await conversationService.pollForCompletion(
+        startResponse.conversation_id,
+        (result) => {
+          // Update UI with latest status
+          setConversationResult(result);
+        }
+      );
+    } catch (error) {
+      console.error('Failed to call customer:', error);
+      alert('Failed to start conversation. Please try again.');
+    } finally {
+      setIsCallingCustomer(false);
+    }
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -222,6 +255,20 @@ const Disputes: React.FC<DisputesProps> = ({ disputes }) => {
                     <p className="text-xs text-slate-500 font-mono mt-1 bg-slate-100 px-2 py-0.5 rounded inline-block">ID: {selectedDispute.id}</p>
                 </div>
                 <div className="flex gap-2">
+                     {selectedDispute.chargeId && (
+                       <button
+                         onClick={handleCallCustomer}
+                         disabled={isCallingCustomer || !!conversationResult}
+                         className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all ${
+                           isCallingCustomer || conversationResult
+                             ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                             : 'bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700 shadow-lg shadow-green-500/30 hover:scale-105'
+                         }`}
+                       >
+                         <Phone size={18} />
+                         {isCallingCustomer ? 'Calling...' : conversationResult ? 'Call Complete' : 'Call Him'}
+                       </button>
+                     )}
                      <button onClick={() => setSelectedDispute(null)} className="p-2.5 hover:bg-slate-100 rounded-xl text-slate-400 hover:text-slate-600 transition-all hover:scale-110">
                         <XCircle size={22} />
                      </button>
@@ -230,20 +277,292 @@ const Disputes: React.FC<DisputesProps> = ({ disputes }) => {
 
             <div className="flex-1 overflow-y-auto p-6 space-y-7">
 
-                 {/* Modern Transcript Card */}
-                 <div className="space-y-3">
-                    <h3 className="text-xs font-black uppercase text-slate-500 tracking-widest flex items-center gap-2">
-                      <div className="w-1 h-4 bg-gradient-to-b from-indigo-500 to-purple-500 rounded-full"></div>
-                      Voice Agent Transcript
-                    </h3>
-                    <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-2xl p-5 border border-slate-200 shadow-sm text-sm leading-relaxed space-y-3">
-                        {selectedDispute.transcript.split('\n').map((line, i) => (
-                             <p key={i} className={line.startsWith('Agent:') ? 'text-indigo-700 font-bold bg-indigo-50 px-3 py-2 rounded-lg border border-indigo-100' : 'text-slate-700 font-medium px-3 py-2'}>
-                                {line}
+                 {/* Conversation Status Card */}
+                 {conversationResult && (
+                   <div className="space-y-4">
+                     <h3 className="text-xs font-black uppercase text-slate-500 tracking-widest flex items-center gap-2">
+                       <div className="w-1 h-4 bg-gradient-to-b from-green-500 to-emerald-500 rounded-full"></div>
+                       Live Conversation
+                     </h3>
+
+                     {/* Status Badge */}
+                     <div className={`px-4 py-2 rounded-xl text-sm font-bold inline-block ${
+                       conversationResult.status === ConversationStatus.IN_PROGRESS
+                         ? 'bg-amber-100 text-amber-700'
+                         : conversationResult.status === ConversationStatus.COMPLETED
+                         ? 'bg-emerald-100 text-emerald-700'
+                         : 'bg-red-100 text-red-700'
+                     }`}>
+                       {conversationResult.status === ConversationStatus.IN_PROGRESS && 'In Progress...'}
+                       {conversationResult.status === ConversationStatus.COMPLETED && 'Completed'}
+                       {conversationResult.status === ConversationStatus.FAILED && 'Failed'}
+                     </div>
+
+                     {/* Live Transcript */}
+                     {conversationResult.transcript && conversationResult.transcript.length > 0 && (
+                       <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-2xl p-5 border border-slate-200 shadow-sm">
+                         <div className="space-y-3 max-h-96 overflow-y-auto">
+                           {conversationResult.transcript.map((entry, i) => (
+                             <p key={i} className={entry.speaker === 'agent'
+                               ? 'text-indigo-700 font-bold bg-indigo-50 px-3 py-2 rounded-lg border border-indigo-100'
+                               : 'text-slate-700 font-medium bg-green-50 px-3 py-2 rounded-lg border border-green-100'
+                             }>
+                               <span className="text-xs uppercase tracking-wider mr-2">
+                                 {entry.speaker === 'agent' ? 'Agent' : 'Customer'}:
+                               </span>
+                               {entry.text}
                              </p>
-                        ))}
-                    </div>
-                 </div>
+                           ))}
+                         </div>
+                       </div>
+                     )}
+
+                     {/* Summary */}
+                     {conversationResult.summary && (
+                       <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                         <h4 className="text-xs font-black uppercase text-blue-900 tracking-widest mb-2">Summary</h4>
+                         <p className="text-sm text-blue-800 font-medium">{conversationResult.summary}</p>
+                       </div>
+                     )}
+
+                     {/* Evidence Result */}
+                     {conversationResult.evidence_result && (
+                       <div className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-2xl p-5 shadow-lg">
+                         <h4 className="text-xs font-black uppercase text-purple-900 tracking-widest mb-4 flex items-center gap-2">
+                           <Sparkles size={16} className="text-purple-600" />
+                           AI Dispute Evaluation
+                         </h4>
+
+                         <div className="space-y-3">
+                           {/* Resolution Status */}
+                           <div className="flex items-center justify-between bg-white/70 rounded-lg p-3 border border-purple-100">
+                             <span className="text-sm font-bold text-slate-700">Resolved:</span>
+                             <span className={`px-3 py-1 rounded-lg text-xs font-black ${
+                               conversationResult.evidence_result.evaluation.resolved
+                                 ? 'bg-emerald-100 text-emerald-700'
+                                 : 'bg-red-100 text-red-700'
+                             }`}>
+                               {conversationResult.evidence_result.evaluation.resolved ? 'YES' : 'NO'}
+                             </span>
+                           </div>
+
+                           {/* Resolution Type */}
+                           {conversationResult.evidence_result.evaluation.resolution_type && (
+                             <div className="flex items-center justify-between bg-white/70 rounded-lg p-3 border border-purple-100">
+                               <span className="text-sm font-bold text-slate-700">Resolution Type:</span>
+                               <span className="text-sm font-bold text-purple-700 uppercase">
+                                 {conversationResult.evidence_result.evaluation.resolution_type}
+                               </span>
+                             </div>
+                           )}
+
+                           {/* Confidence */}
+                           {conversationResult.evidence_result.evaluation.confidence && (
+                             <div className="bg-white/70 rounded-lg p-3 border border-purple-100">
+                               <div className="flex items-center justify-between mb-2">
+                                 <span className="text-sm font-bold text-slate-700">Confidence:</span>
+                                 <span className="text-sm font-black text-purple-700">
+                                   {Math.round(conversationResult.evidence_result.evaluation.confidence * 100)}%
+                                 </span>
+                               </div>
+                               <div className="h-2 bg-purple-100 rounded-full overflow-hidden">
+                                 <div
+                                   className="h-full bg-gradient-to-r from-purple-500 to-pink-500"
+                                   style={{width: `${conversationResult.evidence_result.evaluation.confidence * 100}%`}}
+                                 ></div>
+                               </div>
+                             </div>
+                           )}
+
+                           {/* Reasoning */}
+                           {conversationResult.evidence_result.evaluation.reasoning && (
+                             <div className="bg-white/70 rounded-lg p-3 border border-purple-100">
+                               <span className="text-xs font-black uppercase text-slate-500 block mb-1">Reasoning:</span>
+                               <p className="text-sm text-slate-700 font-medium leading-relaxed">
+                                 {conversationResult.evidence_result.evaluation.reasoning}
+                               </p>
+                             </div>
+                           )}
+
+                           {/* Evidence Fields */}
+                           <div className="bg-white/70 rounded-lg p-3 border border-purple-100">
+                             <span className="text-xs font-black uppercase text-slate-500 block mb-2">Evidence Submitted:</span>
+                             <div className="flex flex-wrap gap-2">
+                               {Object.keys(conversationResult.evidence_result.evidence_generated).map((key) => (
+                                 <span key={key} className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-bold">
+                                   {key.replace(/_/g, ' ')}
+                                 </span>
+                               ))}
+                             </div>
+                           </div>
+
+                           {/* Stripe Status */}
+                           <div className="flex items-center gap-2 text-xs text-slate-600 font-medium">
+                             <span className={`w-2 h-2 rounded-full ${
+                               conversationResult.evidence_result.submitted_to_stripe ? 'bg-emerald-500' : 'bg-amber-500'
+                             }`}></span>
+                             {conversationResult.evidence_result.submitted_to_stripe
+                               ? 'Evidence submitted to Stripe'
+                               : 'Test mode - not submitted to Stripe'}
+                           </div>
+                         </div>
+                       </div>
+                     )}
+
+                     {/* Error */}
+                     {conversationResult.error && (
+                       <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+                         <h4 className="text-xs font-black uppercase text-red-900 tracking-widest mb-2">Error</h4>
+                         <p className="text-sm text-red-800 font-medium">{conversationResult.error}</p>
+                       </div>
+                     )}
+                   </div>
+                 )}
+
+                 {/* Call to Action - Show only when no conversation has been started */}
+                 {!conversationResult && !isCallingCustomer && selectedDispute.chargeId && (
+                   <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-6 text-center">
+                     <Phone className="w-12 h-12 text-green-600 mx-auto mb-3" />
+                     <h3 className="text-lg font-black text-slate-900 mb-2">Ready to Call Customer</h3>
+                     <p className="text-sm text-slate-600 mb-4">
+                       Click "Call Him" to start the AI-powered conversation and automatically resolve this dispute.
+                     </p>
+                   </div>
+                 )}
+
+                 {/* Mock Transcript for disputes without chargeId */}
+                 {!selectedDispute.chargeId && (
+                   <div className="space-y-4">
+                     <h3 className="text-xs font-black uppercase text-slate-500 tracking-widest flex items-center gap-2">
+                       <div className="w-1 h-4 bg-gradient-to-b from-green-500 to-emerald-500 rounded-full"></div>
+                       Previous Conversation
+                     </h3>
+
+                     {/* Status Badge */}
+                     <div className="px-4 py-2 rounded-xl text-sm font-bold inline-block bg-emerald-100 text-emerald-700">
+                       Completed
+                     </div>
+
+                     {/* Mock Transcript */}
+                     <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-2xl p-5 border border-slate-200 shadow-sm">
+                       <div className="space-y-3 max-h-96 overflow-y-auto">
+                         <p className="text-indigo-700 font-bold bg-indigo-50 px-3 py-2 rounded-lg border border-indigo-100">
+                           <span className="text-xs uppercase tracking-wider mr-2">Agent:</span>
+                           Hello, this is Sarah from customer service. I'm calling about your recent chargeback request.
+                         </p>
+                         <p className="text-slate-700 font-medium bg-green-50 px-3 py-2 rounded-lg border border-green-100">
+                           <span className="text-xs uppercase tracking-wider mr-2">Customer:</span>
+                           Hi Sarah, yes I disputed that charge because I wasn't satisfied with the service.
+                         </p>
+                         <p className="text-indigo-700 font-bold bg-indigo-50 px-3 py-2 rounded-lg border border-indigo-100">
+                           <span className="text-xs uppercase tracking-wider mr-2">Agent:</span>
+                           I understand your concern. I've reviewed your account and I can see you've been with us for over a year. Can you tell me more about what happened?
+                         </p>
+                         <p className="text-slate-700 font-medium bg-green-50 px-3 py-2 rounded-lg border border-green-100">
+                           <span className="text-xs uppercase tracking-wider mr-2">Customer:</span>
+                           Well, I expected more features for the price I'm paying. I feel like I'm not getting enough value.
+                         </p>
+                         <p className="text-indigo-700 font-bold bg-indigo-50 px-3 py-2 rounded-lg border border-indigo-100">
+                           <span className="text-xs uppercase tracking-wider mr-2">Agent:</span>
+                           I appreciate your feedback. Let me show you some features you might not be aware of. We recently added premium analytics and priority support to your plan at no extra cost.
+                         </p>
+                         <p className="text-slate-700 font-medium bg-green-50 px-3 py-2 rounded-lg border border-green-100">
+                           <span className="text-xs uppercase tracking-wider mr-2">Customer:</span>
+                           Oh, I didn't know about those features. That does sound more valuable.
+                         </p>
+                         <p className="text-indigo-700 font-bold bg-indigo-50 px-3 py-2 rounded-lg border border-indigo-100">
+                           <span className="text-xs uppercase tracking-wider mr-2">Agent:</span>
+                           I'd be happy to walk you through them. Would you like to continue your subscription and I can help you get set up?
+                         </p>
+                         <p className="text-slate-700 font-medium bg-green-50 px-3 py-2 rounded-lg border border-green-100">
+                           <span className="text-xs uppercase tracking-wider mr-2">Customer:</span>
+                           Yes, that would be great. I'll withdraw the chargeback.
+                         </p>
+                       </div>
+                     </div>
+
+                     {/* Summary */}
+                     <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                       <h4 className="text-xs font-black uppercase text-blue-900 tracking-widest mb-2">Summary</h4>
+                       <p className="text-sm text-blue-800 font-medium">Customer agreed to continue subscription after learning about premium features. Chargeback withdrawn successfully.</p>
+                     </div>
+
+                     {/* Mock Evidence Result */}
+                     <div className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-2xl p-5 shadow-lg">
+                       <h4 className="text-xs font-black uppercase text-purple-900 tracking-widest mb-4 flex items-center gap-2">
+                         <Sparkles size={16} className="text-purple-600" />
+                         AI Dispute Evaluation
+                       </h4>
+
+                       <div className="space-y-3">
+                         {/* Resolution Status */}
+                         <div className="flex items-center justify-between bg-white/70 rounded-lg p-3 border border-purple-100">
+                           <span className="text-sm font-bold text-slate-700">Resolved:</span>
+                           <span className="px-3 py-1 rounded-lg text-xs font-black bg-emerald-100 text-emerald-700">
+                             YES
+                           </span>
+                         </div>
+
+                         {/* Resolution Type */}
+                         <div className="flex items-center justify-between bg-white/70 rounded-lg p-3 border border-purple-100">
+                           <span className="text-sm font-bold text-slate-700">Resolution Type:</span>
+                           <span className="text-sm font-bold text-purple-700 uppercase">
+                             RENEWED
+                           </span>
+                         </div>
+
+                         {/* Confidence */}
+                         <div className="bg-white/70 rounded-lg p-3 border border-purple-100">
+                           <div className="flex items-center justify-between mb-2">
+                             <span className="text-sm font-bold text-slate-700">Confidence:</span>
+                             <span className="text-sm font-black text-purple-700">
+                               95%
+                             </span>
+                           </div>
+                           <div className="h-2 bg-purple-100 rounded-full overflow-hidden">
+                             <div
+                               className="h-full bg-gradient-to-r from-purple-500 to-pink-500"
+                               style={{width: '95%'}}
+                             ></div>
+                           </div>
+                         </div>
+
+                         {/* Reasoning */}
+                         <div className="bg-white/70 rounded-lg p-3 border border-purple-100">
+                           <span className="text-xs font-black uppercase text-slate-500 block mb-1">Reasoning:</span>
+                           <p className="text-sm text-slate-700 font-medium leading-relaxed">
+                             Customer explicitly agreed to withdraw chargeback after understanding full service value. Strong evidence of resolution through education and feature demonstration.
+                           </p>
+                         </div>
+
+                         {/* Evidence Fields */}
+                         <div className="bg-white/70 rounded-lg p-3 border border-purple-100">
+                           <span className="text-xs font-black uppercase text-slate-500 block mb-2">Evidence Submitted:</span>
+                           <div className="flex flex-wrap gap-2">
+                             <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-bold">
+                               cancellation rebuttal
+                             </span>
+                             <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-bold">
+                               product description
+                             </span>
+                             <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-bold">
+                               customer communication
+                             </span>
+                             <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-bold">
+                               service date
+                             </span>
+                           </div>
+                         </div>
+
+                         {/* Stripe Status */}
+                         <div className="flex items-center gap-2 text-xs text-slate-600 font-medium">
+                           <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                           Evidence submitted to Stripe
+                         </div>
+                       </div>
+                     </div>
+                   </div>
+                 )}
 
                  {/* Enhanced RAG Pipeline with Modern Gradients */}
                  {isAnalyzing && (
