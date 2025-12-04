@@ -57,8 +57,9 @@ export const conversationService = {
   async pollForCompletion(
     conversationId: string,
     onUpdate?: (result: ConversationResult) => void,
-    intervalMs: number = 2000,
-    timeoutMs: number = 600000 // 10 minutes
+    intervalMs: number = 5000, // Poll every 5 seconds
+    timeoutMs: number = 600000, // 10 minutes
+    initialDelayMs: number = 60000 // Wait 1 minute before starting to poll
   ): Promise<ConversationResult> {
     const startTime = Date.now();
 
@@ -91,7 +92,8 @@ export const conversationService = {
         }
       };
 
-      poll();
+      // Wait 1 minute before starting to poll
+      setTimeout(poll, initialDelayMs);
     });
   },
 };
