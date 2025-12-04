@@ -30,7 +30,7 @@ class ChargebackInfo(BaseModel):
 
 
 class ConversationRequest(BaseModel):
-    user_info: UserInfo
+    user_info: Optional[UserInfo] = None  # Optional - will be fetched from Stripe if not provided
     chargeback_info: ChargebackInfo
 
     model_config = {

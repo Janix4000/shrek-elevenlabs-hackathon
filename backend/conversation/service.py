@@ -24,6 +24,7 @@ from elevenlabs_wrapper.conversation_manager import (
 )
 from rag_service import RAGService
 from stripe_integration.dispute_response_generator import DisputeResponseGenerator
+from stripe_integration.dispute_evaluator import DisputeEvaluator
 
 load_dotenv()
 
@@ -38,6 +39,7 @@ class ConversationService:
         self.storage = TranscriptStorage(storage_dir=storage_dir)
         self.rag_service = RAGService()
         self.dispute_response_generator = DisputeResponseGenerator()
+        self.dispute_evaluator = DisputeEvaluator()
 
     def _create_fake_conversation(
         self, request: ConversationRequest
@@ -131,6 +133,12 @@ class ConversationService:
             request.chargeback_info.charge_id
         )
 
+        # Check for phone number override from environment
+        phone_number_override = os.getenv("PHONE_NUMBER_OVERRIDE")
+        if phone_number_override:
+            print(f"📞 Using phone number override from .env: {phone_number_override}")
+            phone_number = phone_number_override
+
         # Extract product and customer information from Stripe
         product_info = charge_details["product_info"]
         customer_info = charge_details["customer_info"]
@@ -140,6 +148,7 @@ class ConversationService:
         print(f"   - Customer: {customer_info['name']}")
         print(f"   - Product: {product_info['name']}")
         print(f"   - Amount: ${charge_info['amount']:.2f}")
+        print(f"   - Phone: {phone_number}")
 
         # Query RAG for relevant context before making the call
         print(f"🔍 Querying RAG for: {request.chargeback_info.reason} - {product_info['name']}")
@@ -263,6 +272,38 @@ Note: Use the above information to support your procedural guidance. The evidenc
                 except Exception as e:
                     # Log error but don't fail the whole conversation
                     print(f"Warning: Failed to generate summary: {e}")
+
+            # Evaluate transcript and submit evidence to Stripe
+            print("\n🔍 Evaluating transcript and submitting evidence to Stripe...")
+            try:
+                # Convert transcript to format expected by DisputeEvaluator
+                evaluator_transcript = [
+                    {
+                        "role": msg.role,
+                        "message": msg.message,
+                        "time_in_call_secs": msg.time_in_call_secs
+                    }
+                    for msg in conversation_data.transcript
+                ]
+
+                # Submit evidence immediately to Stripe
+                evidence_result = self.dispute_evaluator.submit_evidence_to_stripe(
+                    charge_id=request.chargeback_info.charge_id,
+                    transcript=evaluator_transcript,
+                    submit_immediately=True  # Submit to bank immediately
+                )
+
+                print("✅ Evidence submitted successfully!")
+                print(f"   - Dispute ID: {evidence_result['dispute_id']}")
+                print(f"   - Resolved: {evidence_result['evaluation']['resolved']}")
+                print(f"   - Resolution Type: {evidence_result['evaluation']['resolution_type']}")
+                print(f"   - Evidence Fields: {len(evidence_result['evidence_generated'])}")
+                print(f"   - Status: {evidence_result['status']}")
+            except Exception as e:
+                # Log error but don't fail the whole conversation
+                print(f"⚠️  Warning: Failed to submit evidence to Stripe: {e}")
+                import traceback
+                traceback.print_exc()
 
             with self._lock:
                 self._conversations[conversation_id] = ConversationResult(
