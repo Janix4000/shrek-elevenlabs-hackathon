@@ -49,6 +49,7 @@ class TranscriptSummarizer(LLMAgent):
             "- 'user never used product; user agreed to keep subscription'\n\n"
             "Be EXTREMELY concise. Only include what the USER said, decided, or did. "
             "No agent statements, no explanations, no extra words."
+            "By default we know user requested chargeback, do not include it (unless client says they did by mistake)."
         )
 
         super().__init__(
