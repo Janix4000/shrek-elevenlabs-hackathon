@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import ReactFlow, {
   Node,
   Edge,
@@ -173,7 +174,7 @@ const AgentFlowConfig: React.FC<AgentFlowConfigProps> = ({ agentName, onClose, o
     onClose();
   };
 
-  return (
+  const modalContent = (
     <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-6">
       <div className="bg-white rounded-xl w-full max-w-7xl h-[90vh] shadow-2xl flex">
 
@@ -490,6 +491,8 @@ const AgentFlowConfig: React.FC<AgentFlowConfigProps> = ({ agentName, onClose, o
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 };
 
 export default AgentFlowConfig;

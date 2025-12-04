@@ -1,5 +1,5 @@
-import React from 'react';
-import { Check, ExternalLink, Settings, AlertCircle, Plus } from 'lucide-react';
+import React, { useState } from 'react';
+import { Check, ExternalLink, Settings, AlertCircle, Plus, X } from 'lucide-react';
 import { CreditCard } from 'lucide-react';
 
 interface Integration {
@@ -298,6 +298,24 @@ const INTEGRATIONS: Integration[] = [
 
 const Integrations: React.FC = () => {
   const connectedCount = INTEGRATIONS.filter(i => i.connected).length;
+  const [configModal, setConfigModal] = useState<string | null>(null);
+  const [stripeConfig, setStripeConfig] = useState({
+    apiKey: 'sk_live_••••••••••••••••••••••••4242',
+    webhookSecret: 'whsec_••••••••••••••••••••••••',
+    autoSync: true,
+    syncInterval: '5',
+    disputeNotifications: true,
+    testMode: false
+  });
+
+  const handleConfigure = (integrationId: string) => {
+    setConfigModal(integrationId);
+  };
+
+  const handleSaveConfig = () => {
+    // Here you would save the configuration
+    setConfigModal(null);
+  };
 
   return (
     <div className="space-y-6">
@@ -367,7 +385,10 @@ const Integrations: React.FC = () => {
 
             {/* Actions */}
             <div className="flex items-center gap-2">
-              <button className="flex-1 px-3 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2">
+              <button
+                onClick={() => handleConfigure(integration.id)}
+                className="flex-1 px-3 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+              >
                 <Settings size={14} />
                 Configure
               </button>
@@ -409,6 +430,288 @@ const Integrations: React.FC = () => {
           ))}
         </div>
       </div>
+
+      {/* Configuration Modal */}
+      {configModal === 'stripe' && (
+        <>
+          <div
+            className="fixed inset-0 bg-slate-900 opacity-50 z-40"
+            onClick={() => setConfigModal(null)}
+          ></div>
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              {/* Header */}
+              <div className="p-6 border-b border-slate-200 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <StripeLogo />
+                  <div>
+                    <h2 className="text-xl font-bold text-slate-900">Stripe Configuration</h2>
+                    <p className="text-sm text-slate-500">Manage your Stripe integration settings</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setConfigModal(null)}
+                  className="text-slate-400 hover:text-slate-600"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+
+              {/* Content */}
+              <div className="p-6 space-y-6">
+                {/* API Keys Section */}
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-900 mb-3">API Credentials</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                        Secret Key
+                      </label>
+                      <input
+                        type="password"
+                        value={stripeConfig.apiKey}
+                        onChange={(e) => setStripeConfig({ ...stripeConfig, apiKey: e.target.value })}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                      <p className="text-xs text-slate-500 mt-1">Your Stripe secret API key (starts with sk_)</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                        Webhook Secret
+                      </label>
+                      <input
+                        type="password"
+                        value={stripeConfig.webhookSecret}
+                        onChange={(e) => setStripeConfig({ ...stripeConfig, webhookSecret: e.target.value })}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                      <p className="text-xs text-slate-500 mt-1">Webhook signing secret (starts with whsec_)</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sync Settings */}
+                <div className="border-t border-slate-200 pt-6">
+                  <h3 className="text-sm font-semibold text-slate-900 mb-3">Sync Settings</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <label className="text-sm font-medium text-slate-700">Auto Sync</label>
+                        <p className="text-xs text-slate-500">Automatically sync disputes from Stripe</p>
+                      </div>
+                      <button
+                        onClick={() => setStripeConfig({ ...stripeConfig, autoSync: !stripeConfig.autoSync })}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                          stripeConfig.autoSync ? 'bg-indigo-600' : 'bg-slate-300'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            stripeConfig.autoSync ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                        Sync Interval (minutes)
+                      </label>
+                      <select
+                        value={stripeConfig.syncInterval}
+                        onChange={(e) => setStripeConfig({ ...stripeConfig, syncInterval: e.target.value })}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      >
+                        <option value="1">Every 1 minute</option>
+                        <option value="5">Every 5 minutes</option>
+                        <option value="15">Every 15 minutes</option>
+                        <option value="30">Every 30 minutes</option>
+                        <option value="60">Every hour</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Notifications */}
+                <div className="border-t border-slate-200 pt-6">
+                  <h3 className="text-sm font-semibold text-slate-900 mb-3">Notifications</h3>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className="text-sm font-medium text-slate-700">Dispute Notifications</label>
+                      <p className="text-xs text-slate-500">Receive alerts for new disputes</p>
+                    </div>
+                    <button
+                      onClick={() => setStripeConfig({ ...stripeConfig, disputeNotifications: !stripeConfig.disputeNotifications })}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                        stripeConfig.disputeNotifications ? 'bg-indigo-600' : 'bg-slate-300'
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                          stripeConfig.disputeNotifications ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Test Mode */}
+                <div className="border-t border-slate-200 pt-6">
+                  <h3 className="text-sm font-semibold text-slate-900 mb-3">Environment</h3>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className="text-sm font-medium text-slate-700">Test Mode</label>
+                      <p className="text-xs text-slate-500">Use Stripe test environment</p>
+                    </div>
+                    <button
+                      onClick={() => setStripeConfig({ ...stripeConfig, testMode: !stripeConfig.testMode })}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                        stripeConfig.testMode ? 'bg-indigo-600' : 'bg-slate-300'
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                          stripeConfig.testMode ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Data Fields Synced */}
+                <div className="border-t border-slate-200 pt-6">
+                  <h3 className="text-sm font-semibold text-slate-900 mb-3">Data Fields Synced from Stripe</h3>
+                  <div className="bg-slate-50 rounded-lg p-4 space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <p className="text-xs font-semibold text-slate-900">Dispute Information</p>
+                        <ul className="text-xs text-slate-600 mt-1 space-y-0.5">
+                          <li>• Dispute ID & Status</li>
+                          <li>• Amount & Currency</li>
+                          <li>• Reason & Evidence</li>
+                          <li>• Response Deadline</li>
+                        </ul>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-slate-900">Customer Data</p>
+                        <ul className="text-xs text-slate-600 mt-1 space-y-0.5">
+                          <li>• Name & Email</li>
+                          <li>• Phone Number</li>
+                          <li>• Billing Address</li>
+                          <li>• Purchase History</li>
+                        </ul>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-slate-900">Transaction Details</p>
+                        <ul className="text-xs text-slate-600 mt-1 space-y-0.5">
+                          <li>• Charge ID & Amount</li>
+                          <li>• Payment Method</li>
+                          <li>• Order Description</li>
+                          <li>• Transaction Date</li>
+                        </ul>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-slate-900">Delivery Information</p>
+                        <ul className="text-xs text-slate-600 mt-1 space-y-0.5">
+                          <li>• Shipping Address</li>
+                          <li>• Tracking Number</li>
+                          <li>• Delivery Status</li>
+                          <li>• GPS Coordinates</li>
+                        </ul>
+                      </div>
+                    </div>
+                    <div className="pt-3 border-t border-slate-200">
+                      <p className="text-xs font-semibold text-slate-900 mb-1">Webhook Events</p>
+                      <div className="flex flex-wrap gap-2">
+                        <span className="px-2 py-1 bg-indigo-100 text-indigo-700 rounded text-xs font-medium">charge.dispute.created</span>
+                        <span className="px-2 py-1 bg-indigo-100 text-indigo-700 rounded text-xs font-medium">charge.dispute.updated</span>
+                        <span className="px-2 py-1 bg-indigo-100 text-indigo-700 rounded text-xs font-medium">charge.dispute.closed</span>
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-2">
+                    All data is encrypted in transit and at rest. Synced every {stripeConfig.syncInterval} minute{stripeConfig.syncInterval !== '1' ? 's' : ''}.
+                  </p>
+                </div>
+
+                {/* Sample Data Preview */}
+                <div className="border-t border-slate-200 pt-6">
+                  <h3 className="text-sm font-semibold text-slate-900 mb-3">Sample Data Preview</h3>
+                  <div className="bg-slate-900 rounded-lg p-4 max-h-64 overflow-y-auto">
+                    <pre className="text-xs text-slate-300 font-mono leading-relaxed">
+{`{
+  "dispute": {
+    "id": "dp_1234567890abcdef",
+    "amount": 8995,
+    "currency": "usd",
+    "status": "needs_response",
+    "reason": "fraudulent",
+    "evidence_details": {
+      "due_by": 1694520000
+    },
+    "charge": {
+      "id": "ch_3NzQ2L...",
+      "amount": 8995,
+      "customer": "cus_OwnerID123",
+      "description": "Huel Black Edition x2",
+      "receipt_email": "customer@email.com",
+      "shipping": {
+        "name": "Customer Name",
+        "address": {
+          "line1": "123 Main Street",
+          "city": "Portland",
+          "state": "OR",
+          "postal_code": "97201"
+        },
+        "tracking_number": "9400116901234567890",
+        "tracking_status": "delivered"
+      },
+      "metadata": {
+        "delivery_gps": "45.5152,-122.6784"
+      }
+    },
+    "payment_method_details": {
+      "card": {
+        "brand": "visa",
+        "last4": "4242"
+      }
+    }
+  },
+  "customer": {
+    "name": "Customer Name",
+    "email": "customer@email.com",
+    "phone": "+15035551234"
+  }
+}`}
+                    </pre>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-2">
+                    This is a sanitized example. Actual data includes more fields and varies by dispute type.
+                  </p>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="p-6 border-t border-slate-200 flex items-center justify-between">
+                <button
+                  onClick={() => setConfigModal(null)}
+                  className="px-4 py-2 text-slate-700 hover:text-slate-900 font-medium"
+                >
+                  Cancel
+                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={handleSaveConfig}
+                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium"
+                  >
+                    Save Changes
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };
