@@ -37,6 +37,7 @@ Create or update your `.env` file in the `backend/` directory:
 ```bash
 # ElevenLabs
 AGENT_ID=your_elevenlabs_agent_id
+ELEVENLABS_API_KEY=your_elevenlabs_api_key
 
 # Pinecone (shared - already set up with data uploaded)
 PINECONE_API_KEY=ask_bartosz_for_key
@@ -44,6 +45,8 @@ PINECONE_API_KEY=ask_bartosz_for_key
 # OpenAI (shared - already set up)
 OPENAI_API_KEY=ask_bartosz_for_key
 ```
+
+**Why ELEVENLABS_API_KEY?** The system fetches your agent's base prompt from ElevenLabs before each call, then appends RAG context to it. This ensures the agent maintains its personality while having access to relevant knowledge.
 
 **Note:** The Pinecone index is already created and data is already uploaded. You just need the API keys to connect.
 

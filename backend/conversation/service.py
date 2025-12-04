@@ -22,12 +22,14 @@ from elevenlabs_wrapper.conversation_manager import (
     TranscriptMessage,
     ConversationMetadata,
 )
+from elevenlabs_wrapper.agent_config import AgentConfigFetcher
 from rag_service import RAGService
 
 load_dotenv()
 
 agent_id = os.getenv("AGENT_ID")
 anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
+elevenlabs_api_key = os.getenv("ELEVENLABS_API_KEY")
 
 
 class ConversationService:
@@ -36,6 +38,7 @@ class ConversationService:
         self._lock = threading.Lock()
         self.storage = TranscriptStorage(storage_dir=storage_dir)
         self.rag_service = RAGService()
+        self.agent_config_fetcher = AgentConfigFetcher() if elevenlabs_api_key else None
 
     def _create_dynamic_variables(self, request: ConversationRequest) -> dict[str, str]:
         return {
@@ -158,10 +161,16 @@ class ConversationService:
             dynamic_variables=dynamic_variables,
         )
 
-        # Add RAG context as supplementary information to the agent
-        # This appends to the base prompt configured in ElevenLabs dashboard
-        if context_string:
-            rag_supplement = f"""
+        # Fetch base prompt from ElevenLabs and append RAG context
+        if context_string and self.agent_config_fetcher:
+            try:
+                # Fetch the base prompt from ElevenLabs GUI
+                print(f"📥 Fetching base prompt from ElevenLabs for agent {agent_id}")
+                base_prompt = self.agent_config_fetcher.get_agent_prompt(agent_id)
+                print(f"✅ Base prompt fetched ({len(base_prompt)} chars)")
+
+                # Append RAG context to the base prompt
+                rag_supplement = f"""
 
 ---
 SUPPLEMENTARY INFORMATION FOR THIS CALL
@@ -176,7 +185,18 @@ Relevant Knowledge Base:
 
 Note: Use the above information only as factual reference to support the procedural options (cancellation or renewal) you present to the customer. Do not deviate from your core approach."""
 
-            agent.set_prompt(prompt=rag_supplement)
+                # Combine base prompt + RAG context
+                combined_prompt = base_prompt + rag_supplement
+                agent.set_prompt(prompt=combined_prompt)
+                print(f"✅ Combined prompt created ({len(combined_prompt)} chars)")
+
+            except Exception as e:
+                # If fetching fails, log error but continue without RAG context
+                print(f"⚠️  Warning: Failed to fetch base prompt: {e}")
+                print(f"   Continuing without RAG context appended to prompt")
+        elif context_string and not self.agent_config_fetcher:
+            print(f"⚠️  Warning: ELEVENLABS_API_KEY not set, cannot fetch base prompt")
+            print(f"   RAG context will not be used")
 
         start_time = time.time()
 

@@ -8,3 +8,4 @@ anthropic
 pinecone-client
 openai
 python-dotenv
+httpx

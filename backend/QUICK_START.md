@@ -23,8 +23,9 @@ pip install -r requirements.txt
 
 ### 3. Add API keys to `.env`
 ```bash
-# Your ElevenLabs agent
+# Your ElevenLabs agent and API key
 AGENT_ID=your_agent_id_here
+ELEVENLABS_API_KEY=your_elevenlabs_api_key_here
 
 # Bartosz's shared keys (ask him)
 PINECONE_API_KEY=...
