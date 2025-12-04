@@ -39,15 +39,6 @@ class ConversationService:
         self.rag_service = RAGService()
         self.dispute_response_generator = DisputeResponseGenerator()
 
-    def _create_dynamic_variables(self, request: ConversationRequest) -> dict[str, str]:
-        return {
-            "first_name": request.user_info.first_name,
-            "last_name": request.user_info.last_name,
-            "phone_number": request.user_info.phone_number,
-            "product_name": request.chargeback_info.product_name,
-            "chargeback_reason": request.chargeback_info.reason,
-        }
-
     def _create_fake_conversation(
         self, request: ConversationRequest
     ) -> ConversationData:
@@ -236,7 +227,7 @@ Note: Use the above information to support your procedural guidance. The evidenc
                 conversation_data = phone_caller.make_call_and_wait(
                     agent=agent,
                     to_number=phone_number,  # Use phone number from Stripe
-                    poll_interval=2,
+                    poll_interval=1.5,
                     timeout=600,  # 10 minute timeout
                     print_transcript=False,  # Don't print to console in background task
                 )
