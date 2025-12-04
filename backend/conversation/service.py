@@ -97,6 +97,7 @@ class ConversationService:
     def __init__(self, storage_dir: str = "transcripts"):
         self._conversations: dict[str, ConversationResult] = {}
         self._charge_ids: dict[str, str] = {}  # Maps conversation_id -> charge_id
+        self._phone_number_overrides: dict[str, str] = {}  # Maps conversation_id -> phone_number override
         self._lock = threading.Lock()
         self.storage = TranscriptStorage(storage_dir=storage_dir)
         self.rag_service = RAGService()
@@ -161,7 +162,7 @@ class ConversationService:
             metadata=mock_metadata,
         )
 
-    def create_conversation(self, charge_id: str) -> str:
+    def create_conversation(self, charge_id: str, phone_number_override: str | None = None) -> str:
         conversation_id = f"conv_{uuid.uuid4().hex[:12]}"
 
         with self._lock:
@@ -170,6 +171,8 @@ class ConversationService:
                 status=ConversationStatus.IN_PROGRESS,
             )
             self._charge_ids[conversation_id] = charge_id
+            if phone_number_override:
+                self._phone_number_overrides[conversation_id] = phone_number_override
 
         return conversation_id
 
@@ -182,9 +185,10 @@ class ConversationService:
         if not agent_id:
             raise ValueError("AGENT_ID must be set in environment variables")
 
-        # Get charge_id from the stored mapping
+        # Get charge_id and phone_number_override from the stored mappings
         with self._lock:
             charge_id = self._charge_ids.get(conversation_id)
+            phone_number_override = self._phone_number_overrides.get(conversation_id)
 
         if not charge_id:
             raise ValueError(f"No charge_id found for conversation {conversation_id}")
@@ -200,11 +204,15 @@ class ConversationService:
             self.dispute_response_generator.generate_dispute_response(charge_id)
         )
 
-        # Check for phone number override from environment
-        phone_number_override = os.getenv("PHONE_NUMBER_OVERRIDE")
+        # Check for phone number override from request, then environment
         if phone_number_override:
-            print(f"📞 Using phone number override from .env: {phone_number_override}")
+            print(f"📞 Using phone number override from request: {phone_number_override}")
             phone_number = phone_number_override
+        else:
+            phone_number_env_override = os.getenv("PHONE_NUMBER_OVERRIDE")
+            if phone_number_env_override:
+                print(f"📞 Using phone number override from .env: {phone_number_env_override}")
+                phone_number = phone_number_env_override
 
         # Extract product and customer information from Stripe
         product_info = charge_details["product_info"]

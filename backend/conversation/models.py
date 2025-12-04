@@ -40,6 +40,9 @@ class ConversationRequestLegacy(BaseModel):
     charge_id: str = Field(
         ..., min_length=1, description="Stripe charge ID (e.g., ch_xxxxx)"
     )
+    phone_number: Optional[str] = Field(
+        None, description="Optional phone number to override Stripe phone number"
+    )
 
     model_config = {
         "json_schema_extra": {
@@ -51,6 +54,7 @@ class ConversationRequestLegacy(BaseModel):
                         "phone_number": "+1234567890",
                     },
                     "charge_id": "ch_3SaQFuAITa6PCFHj0dnBlMJP",
+                    "phone_number": "+1234567890",
                 }
             ]
         }
@@ -80,19 +84,30 @@ class ConversationStatus(str, Enum):
 
 class DisputeEvaluation(BaseModel):
     """Evaluation of the conversation outcome."""
+
     resolved: bool = Field(..., description="Whether the dispute was resolved")
-    resolution_type: Optional[str] = Field(None, description="Type of resolution (e.g., 'renewed', 'canceled', 'partial_refund')")
-    confidence: Optional[float] = Field(None, description="Confidence score of the evaluation")
-    reasoning: Optional[str] = Field(None, description="Reasoning behind the evaluation")
+    resolution_type: Optional[str] = Field(
+        None,
+        description="Type of resolution (e.g., 'renewed', 'canceled', 'partial_refund', 'full_refund', 'discount')",
+    )
+    confidence: Optional[float] = Field(
+        None, description="Confidence score of the evaluation"
+    )
+    reasoning: Optional[str] = Field(
+        None, description="Reasoning behind the evaluation"
+    )
 
 
 class EvidenceResult(BaseModel):
     """Result of evidence generation and submission."""
+
     dispute_id: str = Field(..., description="Stripe dispute ID")
     evaluation: DisputeEvaluation
     evidence_generated: dict = Field(..., description="Generated evidence fields")
     status: str = Field(..., description="Submission status")
-    submitted_to_stripe: bool = Field(..., description="Whether evidence was actually submitted to Stripe")
+    submitted_to_stripe: bool = Field(
+        ..., description="Whether evidence was actually submitted to Stripe"
+    )
 
 
 class ConversationResult(BaseModel):
@@ -130,14 +145,14 @@ class ConversationResult(BaseModel):
                             "resolved": True,
                             "resolution_type": "renewed",
                             "confidence": 0.95,
-                            "reasoning": "Customer explicitly agreed to renew"
+                            "reasoning": "Customer explicitly agreed to renew",
                         },
                         "evidence_generated": {
                             "cancellation_rebuttal": "...",
-                            "product_description": "..."
+                            "product_description": "...",
                         },
                         "status": "submitted",
-                        "submitted_to_stripe": True
+                        "submitted_to_stripe": True,
                     },
                     "error": None,
                 }

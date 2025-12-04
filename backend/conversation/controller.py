@@ -37,7 +37,9 @@ async def start_conversation(
     Request body only requires the Stripe charge_id - all other information
     (customer details, product info, etc.) will be fetched automatically from Stripe.
     """
-    conversation_id = conversation_service.create_conversation(request.charge_id)
+    conversation_id = conversation_service.create_conversation(
+        request.charge_id, phone_number_override=request.phone_number
+    )
 
     background_tasks.add_task(
         conversation_service.run_conversation, conversation_id, fake_conv, update_stripe

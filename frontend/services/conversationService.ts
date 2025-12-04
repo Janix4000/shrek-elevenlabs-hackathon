@@ -9,8 +9,17 @@ export const conversationService = {
   async startConversation(
     chargeId: string,
     fakeConv: boolean = false,
-    updateStripe: boolean = false
+    updateStripe: boolean = false,
+    phoneNumber?: string
   ): Promise<ConversationStartResponse> {
+    const body: { charge_id: string; phone_number?: string } = {
+      charge_id: chargeId,
+    };
+
+    if (phoneNumber) {
+      body.phone_number = phoneNumber;
+    }
+
     const response = await fetch(
       `${API_BASE_URL}/api/conversation/start?fake_conv=${fakeConv}&update_stripe=${updateStripe}`,
       {
@@ -18,7 +27,7 @@ export const conversationService = {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ charge_id: chargeId }),
+        body: JSON.stringify(body),
       }
     );
 

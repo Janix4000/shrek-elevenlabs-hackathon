@@ -64,6 +64,7 @@ const Disputes: React.FC<DisputesProps> = ({ disputes }) => {
   const [conversationResult, setConversationResult] = useState<ConversationResult | null>(null);
   const [isCallingCustomer, setIsCallingCustomer] = useState(false);
   const [updateStripe, setUpdateStripe] = useState(false);
+  const [phoneNumberOverride, setPhoneNumberOverride] = useState('');
 
   const handleSelect = (dispute: Dispute) => {
     setSelectedDispute(dispute);
@@ -71,6 +72,7 @@ const Disputes: React.FC<DisputesProps> = ({ disputes }) => {
     setUploadedFiles([]);
     setConversationResult(null);
     setUpdateStripe(false);
+    setPhoneNumberOverride('');
   };
 
   const handleCallCustomer = async () => {
@@ -84,7 +86,8 @@ const Disputes: React.FC<DisputesProps> = ({ disputes }) => {
       const startResponse = await conversationService.startConversation(
         selectedDispute.chargeId,
         false, // Use fake_conv=false for production
-        updateStripe // Use checkbox value for update_stripe
+        updateStripe, // Use checkbox value for update_stripe
+        phoneNumberOverride || undefined // Use phone number override if provided
       );
 
       // Start polling for completion
@@ -250,43 +253,59 @@ const Disputes: React.FC<DisputesProps> = ({ disputes }) => {
           ></div>
           <div className="fixed inset-y-0 right-0 w-[520px] bg-gradient-to-br from-white via-white to-slate-50/30 shadow-2xl z-50 transform transition-transform border-l border-slate-200/80 flex flex-col animate-slide-in-right">
 
-            <div className="p-6 border-b border-slate-200/80 flex justify-between items-center bg-gradient-to-r from-white to-slate-50/50">
-              <div>
-                <h2 className="text-xl font-black text-slate-900 tracking-tight">Dispute Review</h2>
-                <p className="text-xs text-slate-500 font-mono mt-1 bg-slate-100 px-2 py-0.5 rounded inline-block">ID: {selectedDispute.id}</p>
-              </div>
-              <div className="flex gap-3 items-center">
-                {selectedDispute.chargeId && (
-                  <div className="flex items-center gap-3">
-                    <label className="flex items-center gap-2 px-3 py-2 bg-slate-100 rounded-lg hover:bg-slate-200 transition-all cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={updateStripe}
-                        onChange={(e) => setUpdateStripe(e.target.checked)}
+            <div className="p-6 border-b border-slate-200/80 bg-gradient-to-r from-white to-slate-50/50">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-xl font-black text-slate-900 tracking-tight">Dispute Review</h2>
+                  <p className="text-xs text-slate-500 font-mono mt-1 bg-slate-100 px-2 py-0.5 rounded inline-block">ID: {selectedDispute.id}</p>
+                </div>
+                <div className="flex gap-3 items-center">
+                  {selectedDispute.chargeId && (
+                    <div className="flex items-center gap-3">
+                      <label className="flex items-center gap-2 px-3 py-2 bg-slate-100 rounded-lg hover:bg-slate-200 transition-all cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={updateStripe}
+                          onChange={(e) => setUpdateStripe(e.target.checked)}
+                          disabled={isCallingCustomer || !!conversationResult}
+                          className="w-4 h-4 text-blue-600 bg-white border-slate-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer disabled:cursor-not-allowed"
+                        />
+                        <span className={`text-xs font-bold ${isCallingCustomer || conversationResult ? 'text-slate-400' : 'text-slate-700'}`}>
+                          Stripe
+                        </span>
+                      </label>
+                      <button
+                        onClick={handleCallCustomer}
                         disabled={isCallingCustomer || !!conversationResult}
-                        className="w-4 h-4 text-blue-600 bg-white border-slate-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer disabled:cursor-not-allowed"
-                      />
-                      <span className={`text-xs font-bold ${isCallingCustomer || conversationResult ? 'text-slate-400' : 'text-slate-700'}`}>
-                        Stripe
-                      </span>
-                    </label>
-                    <button
-                      onClick={handleCallCustomer}
-                      disabled={isCallingCustomer || !!conversationResult}
-                      className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all ${isCallingCustomer || conversationResult
-                        ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                        : 'bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700 shadow-lg shadow-green-500/30 hover:scale-105'
-                        }`}
-                    >
-                      <Phone size={18} />
-                      {isCallingCustomer ? 'Calling...' : conversationResult ? 'Call Complete' : 'Call Him'}
-                    </button>
-                  </div>
-                )}
-                <button onClick={() => setSelectedDispute(null)} className="p-2.5 hover:bg-slate-100 rounded-xl text-slate-400 hover:text-slate-600 transition-all hover:scale-110">
-                  <XCircle size={22} />
-                </button>
+                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all ${isCallingCustomer || conversationResult
+                          ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                          : 'bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700 shadow-lg shadow-green-500/30 hover:scale-105'
+                          }`}
+                      >
+                        <Phone size={18} />
+                        {isCallingCustomer ? 'Calling...' : conversationResult ? 'Call Complete' : 'Call Him'}
+                      </button>
+                    </div>
+                  )}
+                  <button onClick={() => setSelectedDispute(null)} className="p-2.5 hover:bg-slate-100 rounded-xl text-slate-400 hover:text-slate-600 transition-all hover:scale-110">
+                    <XCircle size={22} />
+                  </button>
+                </div>
               </div>
+
+              {/* Phone Number Input - Below buttons */}
+              {selectedDispute.chargeId && (
+                <div className="mt-4">
+                  <input
+                    type="tel"
+                    placeholder="Phone number override (optional)"
+                    value={phoneNumberOverride}
+                    onChange={(e) => setPhoneNumberOverride(e.target.value)}
+                    disabled={isCallingCustomer || !!conversationResult}
+                    className={`w-full px-3 py-2 text-sm font-medium border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isCallingCustomer || conversationResult ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-white text-slate-700'}`}
+                  />
+                </div>
+              )}
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 space-y-7">
