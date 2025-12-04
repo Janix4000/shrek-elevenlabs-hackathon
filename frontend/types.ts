@@ -18,6 +18,8 @@ export interface Dispute {
   orderItems: string[];
   date: string;
   paymentSource: PaymentSource;
+  agentName: string;
+  callResult: string;
 }
 
 export interface AgentConfig {

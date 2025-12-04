@@ -19,6 +19,8 @@ const MOCK_DISPUTES: Dispute[] = [
     orderItems: ['Huel Black Edition Vanilla x2'],
     date: 'Sep 12th, 2024',
     paymentSource: 'visa',
+    agentName: 'Fraud Detection',
+    callResult: 'Required police report - Customer refused',
     transcript: `Agent: ChargeGuard connected.
 Agent: Hi Trisha, I see you've disputed the charge for Huel Black Edition. Can you tell me more?
 Customer: I never received them. Tracking says delivered but it wasn't there.
@@ -37,6 +39,8 @@ Customer: That's too much work. Just refund me.`
     orderItems: ['Huel Subscription Box'],
     date: 'Jul 17th, 2024',
     paymentSource: 'mastercard',
+    agentName: 'Subscription Support',
+    callResult: 'Cancelled subscription + $65 refund issued',
     transcript: `Agent: ChargeGuard connected. Good afternoon Sarah, I see you've reached out regarding your Huel subscription. How can I help you today?
 Customer: Yes, hi. I want to cancel my subscription. I called last month to cancel it but I'm still being charged.
 Agent: I apologize for the inconvenience. Let me pull up your account right now. Can you confirm the email address on the account?
@@ -59,6 +63,8 @@ Agent: My pleasure, Sarah. Have a great day!`
     orderItems: ['Huel Ready-to-Drink Chocolate x12'],
     date: 'Jul 17th, 2024',
     paymentSource: 'amex',
+    agentName: 'Product Quality',
+    callResult: 'Refused return policy - Call ended',
     transcript: `Agent: ChargeGuard connected. Hello, this is Alex from customer support. Am I speaking with David?
 Customer: Yeah, this is David.
 Agent: Great! I see you've disputed a charge for $54 for Huel Ready-to-Drink bottles. Can you tell me what the issue is?
@@ -84,6 +90,8 @@ Customer: No. [Call ends]`
     orderItems: ['Huel Complete Protein Vanilla x2'],
     date: 'Jan 29th, 2025',
     paymentSource: 'klarna',
+    agentName: 'Delivery Issues',
+    callResult: 'Filed carrier claim + $75 refund approved',
     transcript: `Agent: ChargeGuard connected. Hello, this is Sarah from billing support. Am I speaking with Emma Nielsen?
 Customer: Yes, this is Emma.
 Agent: Thank you. I see you've disputed a charge for $75 for Huel Complete Protein. Can you tell me what happened?
@@ -107,6 +115,8 @@ Customer: Thank you so much for your help.`
     orderItems: ['Huel Hot & Savory Thai Green Curry x4'],
     date: 'Jan 25th, 2025',
     paymentSource: 'klarna',
+    agentName: 'Product Quality',
+    callResult: 'Correct item reshipped + Keep wrong item',
     transcript: `Agent: ChargeGuard connected. Hello, this is Jordan from customer support. Am I speaking with Lars?
 Customer: Yes, hello.
 Agent: Hi Lars. I see you've disputed a charge for $95 for Huel Hot & Savory meals. What seems to be the issue?
@@ -130,6 +140,8 @@ Customer: No, that's all. Thank you.`
     orderItems: ['Huel Powder v3.0 Berry x2'],
     date: 'Jul 17th, 2024',
     paymentSource: 'stripe',
+    agentName: 'Fraud Detection',
+    callResult: 'Verified theft + Replacement shipped with signature',
     transcript: `Agent: ChargeGuard connected. Good morning Marcus, I'm calling about the Huel Powder Berry you ordered. I see there's been a dispute filed. What seems to be the problem?
 Customer: Hi, yeah. I ordered Huel Powder three weeks ago and it still hasn't arrived. I've been tracking it and it says it was delivered, but I never got it.
 Agent: I'm sorry to hear that. Let me look into this for you right away. Can I have your order number?
@@ -158,6 +170,8 @@ Agent: You're very welcome. Have a great day!`
     orderItems: ['Huel Daily Greens'],
     date: 'Jul 17th, 2024',
     paymentSource: 'paypal',
+    agentName: 'Subscription Support',
+    callResult: 'Found confirmation email - Dispute closed',
     transcript: `Agent: ChargeGuard connected. Hi Emily, I'm reaching out about your recent Huel Daily Greens purchase. I see you've opened a dispute. What can I help you with?
 Customer: Yes, I bought Daily Greens but I haven't received my order confirmation or tracking number. I'm worried it didn't go through.
 Agent: I apologize for that concern. Let me check your account. When did you make the purchase?
@@ -182,6 +196,8 @@ Agent: Anytime! Enjoy your Daily Greens, Emily!`
     orderItems: ['Huel Powder v3.0 Chocolate'],
     date: 'Jan 29th, 2025',
     paymentSource: 'visa',
+    agentName: 'Product Quality',
+    callResult: 'Firmware update applied - Awaiting feedback',
     transcript: `Agent: ChargeGuard connected. Hello James, this is Taylor from support. I see you've contacted us about the smart watch you purchased. What seems to be the issue?
 Customer: Yeah, the watch doesn't work properly. The heart rate monitor is completely inaccurate and the battery dies after like 6 hours.
 Agent: I'm sorry to hear you're having trouble. Let's troubleshoot this together. First, have you updated the firmware to the latest version? We released an update last week that addressed some battery and sensor issues.
@@ -208,8 +224,10 @@ Agent: Have a great day!`
     status: DisputeStatus.Pending,
     confidenceScore: 65,
     orderItems: ['Yoga Mat Set'],
-    date: 'Jan 28th, 2025',
+    date: 'Jan 29th, 2025',
     paymentSource: 'mastercard',
+    agentName: 'Delivery Issues',
+    callResult: 'Correct item expedited + Keep wrong item + 15% off next order',
     transcript: `Agent: ChargeGuard connected. Hi Lisa, I'm Jordan calling about your recent order. I understand there's an issue with your yoga mat set?
 Customer: Yes, you shipped me the wrong item. I ordered the premium yoga mat set in purple, but I received a basic mat in blue.
 Agent: I sincerely apologize for that mix-up. Let me pull up your order. Order number YM-4382, is that correct?
@@ -237,6 +255,8 @@ Customer: Thank you so much!`
     orderItems: ['Gaming Keyboard'],
     date: 'Jan 27th, 2025',
     paymentSource: 'paypal',
+    agentName: 'Fraud Detection',
+    callResult: 'No duplicate charge found - Escalated to PayPal',
     transcript: `Agent: ChargeGuard connected. Hello, this is Morgan from billing support. Am I speaking with Robert Anderson?
 Customer: Yeah. I was charged twice for the same keyboard. I want my money back now.
 Agent: I understand your concern. Let me look into this right away. Can you provide the order number or the date of purchase?
@@ -264,6 +284,8 @@ Customer: [Call disconnected]`
     orderItems: ['Phone Case'],
     date: 'Jan 26th, 2025',
     paymentSource: 'stripe',
+    agentName: 'Product Quality',
+    callResult: 'Full refund + Keep item + 20% off code',
     transcript: `Agent: ChargeGuard connected. Hi Michelle, I'm calling about your phone case order. I see you've indicated the item wasn't as described. Can you tell me more?
 Customer: Yes, the listing said it was made of genuine leather, but this is obviously fake leather or pleather. I specifically paid extra for real leather.
 Agent: I understand your disappointment. That's not acceptable. Can I get your order number?
@@ -290,6 +312,8 @@ Agent: You're welcome, Michelle. Have a great day!`
     orderItems: ['Bluetooth Speaker'],
     date: 'Jan 25th, 2025',
     paymentSource: 'amex',
+    agentName: 'Delivery Issues',
+    callResult: 'Replacement shipped with signature + Photos emailed',
     transcript: `Agent: ChargeGuard connected. Hello Kevin, I'm reaching out regarding your Bluetooth speaker order. I understand it arrived damaged?
 Customer: Yes, the box was completely crushed when it arrived. The speaker has a huge dent on the side and it's making a rattling noise when I shake it.
 Agent: I'm very sorry about that. It sounds like the package wasn't handled properly during shipping. Did you take any photos of the damage and the packaging?
@@ -318,6 +342,8 @@ Agent: Have a great day!`
     orderItems: ['Fitness Tracker'],
     date: 'Jan 24th, 2025',
     paymentSource: 'visa',
+    agentName: 'Fraud Detection',
+    callResult: 'Customer authorized - Dispute closed',
     transcript: `Agent: ChargeGuard connected. Hi Amanda, I'm calling from Huel regarding a charge on your account for $74.95. I see you've disputed this transaction stating you never ordered this item. Is that correct?
 Customer: Yes, I never ordered any fitness tracker. I don't even know what your company sells. This is fraudulent.
 Agent: I understand your concern. Let me investigate this for you. The order was placed on January 10th at 3:22 PM from IP address 192.168.1.1 and shipped to 847 Rosewood Lane, Apartment 3B. Is that your address?
@@ -344,6 +370,8 @@ Agent: Don't worry about it at all! Have a wonderful day, Amanda!`
     orderItems: ['Laptop Stand'],
     date: 'Jan 23rd, 2025',
     paymentSource: 'mastercard',
+    agentName: 'Product Quality',
+    callResult: 'Quick resolution - Refund processed',
     transcript: `Agent: Hello Daniel.\nCustomer: Issue resolved.`
   },
   {
@@ -356,6 +384,8 @@ Agent: Don't worry about it at all! Have a wonderful day, Amanda!`
     orderItems: ['Water Bottle'],
     date: 'Jan 22nd, 2025',
     paymentSource: 'paypal',
+    agentName: 'Product Quality',
+    callResult: 'Defective - Replacement sent',
     transcript: `Agent: Hi Jessica.\nCustomer: Defective product.`
   },
   {
@@ -368,6 +398,8 @@ Agent: Don't worry about it at all! Have a wonderful day, Amanda!`
     orderItems: ['Desk Lamp'],
     date: 'Jan 21st, 2025',
     paymentSource: 'stripe',
+    agentName: 'Fraud Detection',
+    callResult: 'Unreasonable demand - Escalated',
     transcript: `Agent: Hello Christopher.\nCustomer: Want refund immediately.`
   },
   {
@@ -380,6 +412,8 @@ Agent: Don't worry about it at all! Have a wonderful day, Amanda!`
     orderItems: ['Running Shoes'],
     date: 'Jan 20th, 2025',
     paymentSource: 'amex',
+    agentName: 'Delivery Issues',
+    callResult: 'Exchange for correct size processed',
     transcript: `Agent: Hi Nicole.\nCustomer: Wrong size sent.`
   },
   {
@@ -392,6 +426,8 @@ Agent: Don't worry about it at all! Have a wonderful day, Amanda!`
     orderItems: ['Webcam'],
     date: 'Jan 19th, 2025',
     paymentSource: 'visa',
+    agentName: 'Product Quality',
+    callResult: 'Return authorized + Full refund',
     transcript: `Agent: Hello Brandon.\nCustomer: Poor quality.`
   },
   {
@@ -404,6 +440,8 @@ Agent: Don't worry about it at all! Have a wonderful day, Amanda!`
     orderItems: ['Backpack'],
     date: 'Jan 18th, 2025',
     paymentSource: 'mastercard',
+    agentName: 'Fraud Detection',
+    callResult: 'Investigating unauthorized claim',
     transcript: `Agent: Hi Rachel.\nCustomer: Unauthorized charge.`
   },
   {
@@ -413,9 +451,11 @@ Agent: Don't worry about it at all! Have a wonderful day, Amanda!`
     timeLeftHours: 58,
     status: DisputeStatus.Pending,
     confidenceScore: 72,
-    orderItems: ['Tablet Case'],
+    orderItems: ['Huel Complete Protein Chocolate x3'],
     date: 'Jan 17th, 2025',
     paymentSource: 'paypal',
+    agentName: 'Product Quality',
+    callResult: 'Wrong flavor - Correct item shipped',
     transcript: `Agent: Hello Justin.\nCustomer: Not what I ordered.`
   },
   {
@@ -425,9 +465,11 @@ Agent: Don't worry about it at all! Have a wonderful day, Amanda!`
     timeLeftHours: 28,
     status: DisputeStatus.ActionRequired,
     confidenceScore: 52,
-    orderItems: ['Kitchen Scale'],
+    orderItems: ['Huel Powder v3.0 Vanilla'],
     date: 'Jan 16th, 2025',
     paymentSource: 'stripe',
+    agentName: 'Product Quality',
+    callResult: 'Texture complaint - Replacement offered',
     transcript: `Agent: Hi Stephanie.\nCustomer: Doesn't work properly.`
   },
   {
@@ -437,9 +479,11 @@ Agent: Don't worry about it at all! Have a wonderful day, Amanda!`
     timeLeftHours: 71,
     status: DisputeStatus.Won,
     confidenceScore: 91,
-    orderItems: ['Monitor Arm'],
+    orderItems: ['Huel Bundle - Complete Nutrition Pack'],
     date: 'Jan 15th, 2025',
     paymentSource: 'amex',
+    agentName: 'Subscription Support',
+    callResult: 'Resolved - Customer satisfied',
     transcript: `Agent: Hello Andrew.\nCustomer: All good now.`
   },
   {
@@ -449,9 +493,11 @@ Agent: Don't worry about it at all! Have a wonderful day, Amanda!`
     timeLeftHours: 42,
     status: DisputeStatus.Pending,
     confidenceScore: 69,
-    orderItems: ['Hair Dryer'],
+    orderItems: ['Huel Ready-to-Drink Variety Pack x12'],
     date: 'Jan 14th, 2025',
     paymentSource: 'visa',
+    agentName: 'Product Quality',
+    callResult: 'Expired product - Full refund + Replacement',
     transcript: `Agent: Hi Patricia.\nCustomer: Stopped working.`
   },
   {
@@ -461,9 +507,11 @@ Agent: Don't worry about it at all! Have a wonderful day, Amanda!`
     timeLeftHours: 14,
     status: DisputeStatus.ActionRequired,
     confidenceScore: 33,
-    orderItems: ['Standing Desk'],
+    orderItems: ['Huel Starter Bundle + Shaker'],
     date: 'Jan 13th, 2025',
     paymentSource: 'mastercard',
+    agentName: 'Delivery Issues',
+    callResult: 'Missing shaker - Expedited shipping',
     transcript: `Agent: Hello Gregory.\nCustomer: Missing parts.`
   },
   {
@@ -473,9 +521,11 @@ Agent: Don't worry about it at all! Have a wonderful day, Amanda!`
     timeLeftHours: 54,
     status: DisputeStatus.Pending,
     confidenceScore: 79,
-    orderItems: ['Wall Clock'],
+    orderItems: ['Huel Daily Greens'],
     date: 'Jan 12th, 2025',
     paymentSource: 'paypal',
+    agentName: 'Subscription Support',
+    callResult: 'Double delivery - Keep both + Credit applied',
     transcript: `Agent: Hi Melissa.\nCustomer: Color is wrong.`
   }
 ];
@@ -508,10 +558,12 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-[#F8FAFC] font-sans text-slate-900">
+    <div className="h-screen flex flex-col bg-[#F8FAFC] font-sans text-slate-900 overflow-hidden">
       <Header currentView={currentView} onChangeView={setCurrentView} />
-      <main className="flex-1 p-4 md:p-5 max-w-[2000px] mx-auto w-full overflow-auto">
-        {renderView()}
+      <main className="flex-1 overflow-auto">
+        <div className="p-4 md:p-5 max-w-[2000px] mx-auto w-full">
+          {renderView()}
+        </div>
       </main>
     </div>
   );

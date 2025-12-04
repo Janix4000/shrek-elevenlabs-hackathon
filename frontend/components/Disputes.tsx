@@ -10,12 +10,11 @@ interface DisputesProps {
 const PaymentLogo: React.FC<{ source: PaymentSource }> = ({ source }) => {
   const logos: Record<PaymentSource, React.ReactElement> = {
     visa: (
-      <img src="/Visa_Brandmark_Blue_RGB-1.png" alt="Visa" className="h-5 w-auto object-contain" />
+      <img src="/Visa_Brandmark_Blue_RGB-1.png" alt="Visa" className="h-4 w-auto object-contain" />
     ),
     mastercard: (
-      <svg viewBox="0 0 152 108" className="h-6 w-auto">
+      <svg viewBox="0 0 152 108" className="h-5 w-auto">
         <g fill="none" fillRule="evenodd">
-          <rect width="152" height="108" fill="#000" rx="8"/>
           <circle cx="57" cy="54" r="31" fill="#EB001B"/>
           <circle cx="95" cy="54" r="31" fill="#F79E1B"/>
           <path fill="#FF5F00" d="M76 32.8c-5.9 4.6-9.7 11.7-9.7 19.7s3.8 15.1 9.7 19.7c5.9-4.6 9.7-11.7 9.7-19.7s-3.8-15.1-9.7-19.7z"/>
@@ -23,27 +22,23 @@ const PaymentLogo: React.FC<{ source: PaymentSource }> = ({ source }) => {
       </svg>
     ),
     amex: (
-      <img src="/amex.png" alt="American Express" className="h-5 w-auto object-contain" />
+      <img src="/amex.png" alt="American Express" className="h-4 w-auto object-contain" />
     ),
     paypal: (
-      <svg viewBox="0 0 100 32" className="h-5 w-auto">
-        <rect width="100" height="32" fill="#FFC439" rx="4"/>
-        <g transform="translate(8, 8)">
-          <path fill="#003087" d="M12.2 2.5c1.5 0 2.6.3 3.4 1 .7.7 1 1.8.7 3.2-.6 3.2-2.6 4.8-5.8 4.8h-1.4c-.2 0-.4.2-.5.4l-.5 3.2-.1.7c0 .2-.1.2-.3.2H5.3c-.2 0-.3-.1-.2-.3l2-12.8c0-.2.2-.4.4-.4h4.7z"/>
-          <path fill="#009CDE" d="M8.5 6.5c0-.2.2-.4.4-.4h2.3c1.2 0 2.1.2 2.7.8.5.5.7 1.2.5 2.2-.4 2.2-1.7 3.3-3.9 3.3H9.2c-.2 0-.4.2-.4.4l-.4 2.7-.1.5c0 .1-.1.2-.2.2H6.8c-.1 0-.2-.1-.2-.2l1.3-8.5c0-.2.2-.4.4-.4l.2-1z"/>
-        </g>
-        <text x="38" y="21" fontFamily="Verdana, sans-serif" fontSize="10" fontWeight="bold" fill="#003087">PayPal</text>
+      <svg viewBox="0 0 124 33" className="h-4 w-auto">
+        <path fill="#003087" d="M46.211 6.749h-6.839a.95.95 0 0 0-.939.802l-2.766 17.537a.57.57 0 0 0 .564.658h3.265a.95.95 0 0 0 .939-.803l.746-4.73a.95.95 0 0 1 .938-.803h2.165c4.505 0 7.105-2.18 7.784-6.5.306-1.89.013-3.375-.872-4.415-.972-1.142-2.696-1.746-4.985-1.746zM47 13.154c-.374 2.454-2.249 2.454-4.062 2.454h-1.032l.724-4.583a.57.57 0 0 1 .563-.481h.473c1.235 0 2.4 0 3.002.704.359.42.469 1.044.332 1.906zM66.654 13.075h-3.275a.57.57 0 0 0-.563.481l-.145.916-.229-.332c-.709-1.029-2.29-1.373-3.868-1.373-3.619 0-6.71 2.741-7.312 6.586-.313 1.918.132 3.752 1.22 5.031.998 1.176 2.426 1.666 4.125 1.666 2.916 0 4.533-1.875 4.533-1.875l-.146.91a.57.57 0 0 0 .562.66h2.95a.95.95 0 0 0 .939-.803l1.77-11.209a.568.568 0 0 0-.561-.658zm-4.565 6.374c-.316 1.871-1.801 3.127-3.695 3.127-.951 0-1.711-.305-2.199-.883-.484-.574-.668-1.391-.514-2.301.295-1.855 1.805-3.152 3.67-3.152.93 0 1.686.309 2.184.892.499.589.697 1.411.554 2.317z"/>
+        <path fill="#009CDE" d="M84.096 13.075h-3.291a.954.954 0 0 0-.787.417l-4.539 6.686-1.924-6.425a.953.953 0 0 0-.912-.678h-3.234a.57.57 0 0 0-.541.754l3.625 10.638-3.408 4.811a.57.57 0 0 0 .465.9h3.287a.949.949 0 0 0 .781-.408l10.946-15.8a.57.57 0 0 0-.468-.895z"/>
+        <path fill="#003087" d="M94.992 6.749h-6.84a.95.95 0 0 0-.938.802l-2.766 17.537a.569.569 0 0 0 .562.658h3.51a.665.665 0 0 0 .656-.562l.785-4.971a.95.95 0 0 1 .938-.803h2.164c4.506 0 7.105-2.18 7.785-6.5.307-1.89.012-3.375-.873-4.415-.971-1.142-2.694-1.746-4.983-1.746zm.789 6.405c-.373 2.454-2.248 2.454-4.062 2.454h-1.031l.725-4.583a.568.568 0 0 1 .562-.481h.473c1.234 0 2.4 0 3.002.704.359.42.468 1.044.331 1.906zM115.434 13.075h-3.273a.567.567 0 0 0-.562.481l-.145.916-.23-.332c-.709-1.029-2.289-1.373-3.867-1.373-3.619 0-6.709 2.741-7.311 6.586-.312 1.918.131 3.752 1.219 5.031 1 1.176 2.426 1.666 4.125 1.666 2.916 0 4.533-1.875 4.533-1.875l-.146.91a.57.57 0 0 0 .564.66h2.949a.95.95 0 0 0 .938-.803l1.771-11.209a.571.571 0 0 0-.565-.658zm-4.565 6.374c-.314 1.871-1.801 3.127-3.695 3.127-.949 0-1.711-.305-2.199-.883-.484-.574-.666-1.391-.514-2.301.297-1.855 1.805-3.152 3.67-3.152.93 0 1.686.309 2.184.892.501.589.699 1.411.554 2.317z"/>
+        <path fill="#009CDE" d="M119.295 7.23l-2.807 17.858a.569.569 0 0 0 .562.658h2.822c.469 0 .867-.34.939-.803l2.768-17.536a.57.57 0 0 0-.562-.659h-3.16a.571.571 0 0 0-.562.482z"/>
       </svg>
     ),
     stripe: (
-      <svg viewBox="0 0 60 25" className="h-6 w-auto">
-        <g fill="#635BFF" fillRule="evenodd">
-          <path d="M59.64 14.28h-8.06c.19 1.93 1.6 2.55 3.2 2.55 1.64 0 2.96-.37 4.05-.95v3.32a8.33 8.33 0 0 1-4.56 1.1c-4.01 0-6.83-2.5-6.83-7.48 0-4.19 2.39-7.52 6.3-7.52 3.92 0 5.96 3.28 5.96 7.5 0 .4-.04 1.26-.06 1.48zm-5.92-5.62c-1.03 0-2.17.73-2.17 2.58h4.25c0-1.85-1.07-2.58-2.08-2.58zM40.95 20.3c-1.44 0-2.32-.6-2.9-1.04l-.02 4.63-4.12.87V5.57h3.76l.08 1.02a4.7 4.7 0 0 1 3.23-1.29c2.9 0 5.62 2.6 5.62 7.4 0 5.23-2.7 7.6-5.65 7.6zM40 8.95c-.95 0-1.54.34-1.97.81l.02 6.12c.4.44.98.78 1.95.78 1.52 0 2.54-1.65 2.54-3.87 0-2.15-1.04-3.84-2.54-3.84zM28.24 5.57h4.13v14.44h-4.13V5.57zm0-4.7L32.37 0v3.36l-4.13.88V.88zm-4.32 9.35v9.79H19.8V5.57h3.7l.12 1.22c1-1.77 3.07-1.41 3.62-1.22v3.79c-.52-.17-2.29-.43-3.32.86zm-8.55 4.72c0 2.43 2.6 1.68 3.12 1.46v3.36c-.55.3-1.54.54-2.89.54a4.15 4.15 0 0 1-4.27-4.24l.01-13.17 4.02-.86v3.54h3.14V9.1h-3.13v5.85zm-4.91.7c0 2.97-2.31 4.66-5.73 4.66a11.2 11.2 0 0 1-4.46-.93v-3.93c1.38.75 3.1 1.31 4.46 1.31.92 0 1.53-.24 1.53-1C6.26 13.77 0 14.51 0 9.95 0 7.04 2.28 5.3 5.62 5.3c1.36 0 2.72.2 4.09.75v3.88a9.23 9.23 0 0 0-4.1-1.06c-.86 0-1.44.25-1.44.93 0 1.85 6.29.97 6.29 5.88z"/>
-        </g>
+      <svg viewBox="0 0 60 25" className="h-4 w-auto">
+        <path fill="#635BFF" fillRule="evenodd" d="M59.64 14.28h-8.06c.19 1.93 1.6 2.55 3.2 2.55 1.64 0 2.96-.37 4.05-.95v3.32a8.33 8.33 0 0 1-4.56 1.1c-4.01 0-6.83-2.5-6.83-7.48 0-4.19 2.39-7.52 6.3-7.52 3.92 0 5.96 3.28 5.96 7.5 0 .4-.04 1.26-.06 1.48zm-5.92-5.62c-1.03 0-2.17.73-2.17 2.58h4.25c0-1.85-1.07-2.58-2.08-2.58zM40.95 20.3c-1.44 0-2.32-.6-2.9-1.04l-.02 4.63-4.12.87V5.57h3.76l.08 1.02a4.7 4.7 0 0 1 3.23-1.29c2.9 0 5.62 2.6 5.62 7.4 0 5.23-2.7 7.6-5.65 7.6zM40 8.95c-.95 0-1.54.34-1.97.81l.02 6.12c.4.44.98.78 1.95.78 1.52 0 2.54-1.65 2.54-3.87 0-2.15-1.04-3.84-2.54-3.84zM28.24 5.57h4.13v14.44h-4.13V5.57zm0-4.7L32.37 0v3.36l-4.13.88V.88zm-4.32 9.35v9.79H19.8V5.57h3.7l.12 1.22c1-1.77 3.07-1.41 3.62-1.22v3.79c-.52-.17-2.29-.43-3.32.86zm-8.55 4.72c0 2.43 2.6 1.68 3.12 1.46v3.36c-.55.3-1.54.54-2.89.54a4.15 4.15 0 0 1-4.27-4.24l.01-13.17 4.02-.86v3.54h3.14V9.1h-3.13v5.85zm-4.91.7c0 2.97-2.31 4.66-5.73 4.66a11.2 11.2 0 0 1-4.46-.93v-3.93c1.38.75 3.1 1.31 4.46 1.31.92 0 1.53-.24 1.53-1C6.26 13.77 0 14.51 0 9.95 0 7.04 2.28 5.3 5.62 5.3c1.36 0 2.72.2 4.09.75v3.88a9.23 9.23 0 0 0-4.1-1.06c-.86 0-1.44.25-1.44.93 0 1.85 6.29.97 6.29 5.88z"/>
       </svg>
     ),
     klarna: (
-      <svg viewBox="0 0 80 32" className="h-6 w-auto">
+      <svg viewBox="0 0 80 32" className="h-4 w-auto">
         <rect width="80" height="32" fill="#FFB3C7" rx="4"/>
         <text x="40" y="21" fontFamily="Arial, sans-serif" fontSize="14" fontWeight="bold" fill="#000000" textAnchor="middle">klarna</text>
       </svg>
@@ -151,14 +146,15 @@ const Disputes: React.FC<DisputesProps> = ({ disputes }) => {
       {/* Table Layout */}
       <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
         <table className="w-full text-left border-collapse">
-          <thead className="bg-slate-50 border-b border-slate-200">
+          <thead className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-b border-slate-700">
             <tr>
-              <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Payment</th>
-              <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Customer</th>
-              <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Product</th>
-              <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Amount</th>
-              <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">GuardScore</th>
+              <th className="px-6 py-4 text-xs font-bold text-slate-200 uppercase tracking-wider">Payment</th>
+              <th className="px-6 py-4 text-xs font-bold text-slate-200 uppercase tracking-wider">Customer</th>
+              <th className="px-6 py-4 text-xs font-bold text-slate-200 uppercase tracking-wider">Product</th>
+              <th className="px-6 py-4 text-xs font-bold text-slate-200 uppercase tracking-wider">Agent & Result</th>
+              <th className="px-6 py-4 text-xs font-bold text-slate-200 uppercase tracking-wider">Status</th>
+              <th className="px-6 py-4 text-xs font-bold text-slate-200 uppercase tracking-wider text-right">Amount</th>
+              <th className="px-6 py-4 text-xs font-bold text-slate-200 uppercase tracking-wider text-right">GuardScore</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -166,10 +162,17 @@ const Disputes: React.FC<DisputesProps> = ({ disputes }) => {
               <tr
                 key={dispute.id}
                 onClick={() => handleSelect(dispute)}
-                className="hover:bg-slate-50 cursor-pointer transition-colors"
+                className="hover:bg-gradient-to-r hover:from-indigo-50/50 hover:via-purple-50/30 hover:to-pink-50/50 cursor-pointer transition-all hover:shadow-md"
               >
                 <td className="px-6 py-5">
-                  <div className="w-12 h-12 bg-slate-50 rounded-lg flex items-center justify-center">
+                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center shadow-sm ${
+                    dispute.paymentSource === 'visa' ? 'bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200' :
+                    dispute.paymentSource === 'mastercard' ? 'bg-gradient-to-br from-orange-50 to-red-50 border border-orange-200' :
+                    dispute.paymentSource === 'amex' ? 'bg-gradient-to-br from-sky-50 to-cyan-100 border border-sky-200' :
+                    dispute.paymentSource === 'paypal' ? 'bg-gradient-to-br from-yellow-50 to-amber-100 border border-yellow-200' :
+                    dispute.paymentSource === 'stripe' ? 'bg-gradient-to-br from-violet-50 to-purple-100 border border-violet-200' :
+                    'bg-gradient-to-br from-pink-50 to-rose-100 border border-pink-200'
+                  }`}>
                     <PaymentLogo source={dispute.paymentSource} />
                   </div>
                 </td>
@@ -181,14 +184,31 @@ const Disputes: React.FC<DisputesProps> = ({ disputes }) => {
                   <div className="text-sm text-slate-600">{dispute.orderItems.join(', ')}</div>
                 </td>
                 <td className="px-6 py-5">
-                  <span className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider inline-block ${
+                  <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-bold mb-2 ${
+                    dispute.agentName === 'Subscription Support' ? 'bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-700 border border-blue-200' :
+                    dispute.agentName === 'Fraud Detection' ? 'bg-gradient-to-r from-red-100 to-orange-100 text-red-700 border border-red-200' :
+                    dispute.agentName === 'Delivery Issues' ? 'bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-700 border border-amber-200' :
+                    'bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 border border-purple-200'
+                  }`}>
+                    <div className={`w-2 h-2 rounded-full ${
+                      dispute.agentName === 'Subscription Support' ? 'bg-blue-500 shadow-sm shadow-blue-500/50' :
+                      dispute.agentName === 'Fraud Detection' ? 'bg-red-500 shadow-sm shadow-red-500/50' :
+                      dispute.agentName === 'Delivery Issues' ? 'bg-amber-500 shadow-sm shadow-amber-500/50' :
+                      'bg-purple-500 shadow-sm shadow-purple-500/50'
+                    }`}></div>
+                    {dispute.agentName}
+                  </div>
+                  <div className="text-xs text-slate-600">{dispute.callResult}</div>
+                </td>
+                <td className="px-6 py-5">
+                  <span className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider inline-block shadow-sm ${
                       dispute.status === DisputeStatus.ActionRequired
-                      ? 'bg-amber-100 text-amber-700'
+                      ? 'bg-gradient-to-r from-amber-100 to-orange-100 text-amber-700 border border-amber-200'
                       : dispute.status === DisputeStatus.Won
-                      ? 'bg-emerald-100 text-emerald-700'
+                      ? 'bg-gradient-to-r from-emerald-100 to-green-100 text-emerald-700 border border-emerald-200'
                       : dispute.status === DisputeStatus.Lost
-                      ? 'bg-red-100 text-red-700'
-                      : 'bg-indigo-100 text-indigo-700'
+                      ? 'bg-gradient-to-r from-red-100 to-rose-100 text-red-700 border border-red-200'
+                      : 'bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-700 border border-indigo-200'
                   }`}>
                     {dispute.status}
                   </span>
@@ -197,7 +217,11 @@ const Disputes: React.FC<DisputesProps> = ({ disputes }) => {
                   <div className="text-lg font-bold text-slate-900">${dispute.amount.toFixed(2)}</div>
                 </td>
                 <td className="px-6 py-5 text-right">
-                  <div className={`text-lg font-bold ${dispute.confidenceScore > 50 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                  <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-base font-bold shadow-sm ${
+                    dispute.confidenceScore > 70 ? 'bg-gradient-to-r from-emerald-100 to-green-100 text-emerald-700 border border-emerald-200' :
+                    dispute.confidenceScore > 50 ? 'bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-700 border border-blue-200' :
+                    'bg-gradient-to-r from-amber-100 to-orange-100 text-amber-700 border border-amber-200'
+                  }`}>
                     {dispute.confidenceScore}%
                   </div>
                 </td>
@@ -211,10 +235,10 @@ const Disputes: React.FC<DisputesProps> = ({ disputes }) => {
       {selectedDispute && (
         <>
           <div
-            className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-40 transition-opacity animate-fade-in"
+            className="fixed top-0 left-0 right-0 bottom-0 bg-slate-900/20 backdrop-blur-sm z-30 transition-opacity animate-fade-in"
             onClick={() => setSelectedDispute(null)}
           ></div>
-          <div className="fixed inset-y-0 right-0 w-[520px] bg-gradient-to-br from-white via-white to-slate-50/30 shadow-2xl z-50 transform transition-transform border-l border-slate-200/80 flex flex-col animate-slide-in-right">
+          <div className="fixed inset-y-0 right-0 w-[520px] bg-gradient-to-br from-white via-white to-slate-50/30 shadow-2xl z-40 transform transition-transform border-l border-slate-200/80 flex flex-col animate-slide-in-right">
 
             <div className="p-6 border-b border-slate-200/80 flex justify-between items-center bg-gradient-to-r from-white to-slate-50/50">
                 <div>
