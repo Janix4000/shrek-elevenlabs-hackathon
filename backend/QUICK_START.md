@@ -33,7 +33,7 @@ OPENAI_API_KEY=...
 
 ### 4. Test it works
 ```bash
-python test_rag.py
+python tests/test_rag.py
 ```
 
 You should see it finding orders, policies, and scripts from Pinecone.

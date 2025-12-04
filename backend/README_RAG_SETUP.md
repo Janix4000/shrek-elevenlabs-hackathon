@@ -50,7 +50,7 @@ OPENAI_API_KEY=ask_bartosz_for_key
 ### 3. Test RAG Works
 
 ```bash
-python test_rag.py
+python tests/test_rag.py
 ```
 
 This verifies Pinecone can find relevant data based on queries.
@@ -83,7 +83,7 @@ Agent has full knowledge of policies, scripts, and order details.
 ### 1. Test RAG Service Directly
 
 ```bash
-python test_rag.py
+python tests/test_rag.py
 ```
 
 ### 2. Test via API
@@ -114,13 +114,13 @@ This will:
 
 ## Data Files
 
-You can customize the knowledge base by editing these JSON files:
+You can customize the knowledge base by editing these JSON files in the `data/` directory:
 
-- `orders.json` - Customer orders (tracking, delivery status, etc.)
-- `policies.json` - Company policies (refunds, shipping, returns)
-- `dispute_scripts.json` - Pre-written responses for common disputes
-- `resolution_authority.json` - What the agent can offer (refund limits, etc.)
-- `common_confusions.json` - Common customer questions
+- `data/orders.json` - Customer orders (tracking, delivery status, etc.)
+- `data/policies.json` - Company policies (refunds, shipping, returns)
+- `data/dispute_scripts.json` - Pre-written responses for common disputes
+- `data/resolution_authority.json` - What the agent can offer (refund limits, etc.)
+- `data/common_confusions.json` - Common customer questions
 
 **After editing, run `python upload_to_pinecone.py` again to update Pinecone.**
 
@@ -187,9 +187,30 @@ You can customize the knowledge base by editing these JSON files:
 
 Each API call makes 1 embedding request (to query RAG), which costs fractions of a cent.
 
+## Project Structure
+
+```
+backend/
+├── data/              # Knowledge base JSON files
+│   ├── orders.json
+│   ├── policies.json
+│   ├── dispute_scripts.json
+│   ├── resolution_authority.json
+│   └── common_confusions.json
+├── tests/             # Test scripts
+│   ├── test_rag.py
+│   ├── test_rag_integration.py
+│   ├── test_agent_knowledge.py
+│   └── ...
+├── conversation/      # Conversation service
+├── elevenlabs_wrapper/  # ElevenLabs integration
+├── rag_service.py     # RAG implementation
+└── upload_to_pinecone.py  # Data upload script
+```
+
 ## Questions?
 
-- Check `test_rag.py` for example queries
+- Check `tests/test_rag.py` for example queries
 - See `rag_service.py` for implementation details
 - Review `conversation/service.py` to see how RAG integrates
 

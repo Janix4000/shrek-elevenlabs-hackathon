@@ -130,6 +130,7 @@ class ConversationService:
         phone_caller = PhoneCaller()
 
         # Query RAG for relevant context before making the call
+        print(f"🔍 Querying RAG for: {request.chargeback_info.reason} - {request.chargeback_info.product_name}")
         rag_context = self.rag_service.query_context(
             chargeback_reason=request.chargeback_info.reason,
             product_name=request.chargeback_info.product_name,
@@ -140,6 +141,14 @@ class ConversationService:
         # Format the context for the agent
         context_string = self.rag_service.format_context_for_agent(rag_context)
 
+        # Log what RAG found
+        print(f"✅ RAG Results:")
+        print(f"   - {len(rag_context['dispute_scripts'])} dispute scripts")
+        print(f"   - {len(rag_context['policies'])} policies")
+        print(f"   - {len(rag_context['orders'])} orders")
+        print(f"   - {len(rag_context['resolution_authority'])} resolution authorities")
+        print(f"   - Context length: {len(context_string)} chars")
+
         # Create dynamic variables with user info
         dynamic_variables = self._create_dynamic_variables(request)
 
@@ -149,29 +158,25 @@ class ConversationService:
             dynamic_variables=dynamic_variables,
         )
 
-        # Add the RAG context to the agent's prompt
+        # Add RAG context as supplementary information to the agent
+        # This appends to the base prompt configured in ElevenLabs dashboard
         if context_string:
-            agent.set_prompt(
-                prompt=f"""You are a helpful customer service agent for Chargeback Shield, calling to resolve a customer dispute before it becomes a chargeback.
+            rag_supplement = f"""
 
-CUSTOMER CONTEXT:
-- Name: {request.user_info.first_name} {request.user_info.last_name}
-- Product: {request.chargeback_info.product_name}
+---
+SUPPLEMENTARY INFORMATION FOR THIS CALL
+(Use this information to support your procedural guidance, but maintain your established tone and approach)
+
+Customer Details:
+- Full Name: {request.user_info.first_name} {request.user_info.last_name}
 - Dispute Reason: {request.chargeback_info.reason}
 
-KNOWLEDGE BASE (Use this information to help resolve the dispute):
+Relevant Knowledge Base:
 {context_string}
 
-IMPORTANT GUIDELINES:
-1. Be empathetic and understanding - the customer is frustrated
-2. Listen carefully to their specific concern
-3. Use the dispute scripts and policies above to guide your responses
-4. Offer immediate solutions within your authority
-5. Always aim to resolve the issue and prevent the chargeback
-6. If you can't resolve it, escalate appropriately
+Note: Use the above information only as factual reference to support the procedural options (cancellation or renewal) you present to the customer. Do not deviate from your core approach."""
 
-Your goal is to turn this frustrated customer into a satisfied one through a helpful, solution-focused conversation."""
-            )
+            agent.set_prompt(prompt=rag_supplement)
 
         start_time = time.time()
 
