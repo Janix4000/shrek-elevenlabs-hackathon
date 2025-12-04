@@ -133,7 +133,10 @@ class Agent:
         temperature: float | None = None,
         max_tokens: int | None = None,
     ) -> None:
-        """Set the prompt override for the agent."""
+        """
+        Set the prompt override for the agent. This will completely override the base prompt.
+        Use append_prompt() if you want to add to the existing prompt instead.
+        """
         if self.agent_override is None:
             self.agent_override = AgentConfigOverride()
         self.agent_override.prompt = AgentPromptOverride(

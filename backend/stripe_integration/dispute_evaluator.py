@@ -259,6 +259,10 @@ Generate the evidence text now:"""
                 field, metadata, transcript, evaluation
             )
             evidence_generated.append(field)
+            # TODO: Remove break
+            break
+
+        evidence_generated = evidence_generated[:]
 
         # Add simple fields from metadata
         evidence["billing_address"] = metadata.get(
