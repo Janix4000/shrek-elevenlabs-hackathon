@@ -129,12 +129,31 @@ class ConversationService:
 
         phone_caller = PhoneCaller()
 
+        # Fetch comprehensive charge details from Stripe
+        print(f"💳 Fetching Stripe charge details: {request.chargeback_info.charge_id}")
+        charge_details = self.dispute_response_generator.get_charge_details(request.chargeback_info.charge_id)
+
+        # Generate AI-powered response arguments
+        response_arguments, phone_number, name = self.dispute_response_generator.generate_dispute_response(
+            request.chargeback_info.charge_id
+        )
+
+        # Extract product and customer information from Stripe
+        product_info = charge_details["product_info"]
+        customer_info = charge_details["customer_info"]
+        charge_info = charge_details["charge_info"]
+
+        print(f"✅ Stripe data fetched:")
+        print(f"   - Customer: {customer_info['name']}")
+        print(f"   - Product: {product_info['name']}")
+        print(f"   - Amount: ${charge_info['amount']:.2f}")
+
         # Query RAG for relevant context before making the call
-        print(f"🔍 Querying RAG for: {request.chargeback_info.reason} - {request.chargeback_info.product_name}")
+        print(f"🔍 Querying RAG for: {request.chargeback_info.reason} - {product_info['name']}")
         rag_context = self.rag_service.query_context(
             chargeback_reason=request.chargeback_info.reason,
-            product_name=request.chargeback_info.product_name,
-            customer_name=f"{request.user_info.first_name} {request.user_info.last_name}",
+            product_name=product_info["name"],  # Use actual product name from Stripe
+            customer_name=customer_info["name"],  # Use actual customer name from Stripe
             top_k=10,  # Get top 10 most relevant results
         )
 
@@ -149,8 +168,18 @@ class ConversationService:
         print(f"   - {len(rag_context['resolution_authority'])} resolution authorities")
         print(f"   - Context length: {len(context_string)} chars")
 
-        # Create dynamic variables with user info
-        dynamic_variables = self._create_dynamic_variables(request)
+        # Create dynamic variables with actual Stripe data
+        dynamic_variables = {
+            "first_name": customer_info["name"].split(" ")[0],
+            "last_name": customer_info["name"].split(" ")[-1] if len(customer_info["name"].split(" ")) > 1 else "",
+            "phone_number": phone_number,
+            "product_name": product_info["name"],
+            "product_description": product_info["description"],
+            "product_code": product_info["code"],
+            "chargeback_reason": request.chargeback_info.reason,
+            "charge_amount": f"${charge_info['amount']:.2f}",
+            "charge_date": charge_info["date"],
+        }
 
         # Create agent with RAG context injected into the prompt
         agent = Agent(
@@ -167,14 +196,27 @@ class ConversationService:
 SUPPLEMENTARY INFORMATION FOR THIS CALL
 (Use this information to support your procedural guidance, but maintain your established tone and approach)
 
-Customer Details:
-- Full Name: {request.user_info.first_name} {request.user_info.last_name}
+CUSTOMER CONTEXT:
+- Name: {customer_info["name"]}
+- Email: {customer_info["email"]}
+- Phone: {phone_number}
+
+PRODUCT & CHARGE DETAILS:
+- Product: {product_info["name"]}
+- Description: {product_info["description"]}
+- Product Code: {product_info["code"]}
+- Category: {product_info["category"]}
+- Charge Amount: ${charge_info["amount"]:.2f} {charge_info["currency"]}
+- Charge Date: {charge_info["date"]}
 - Dispute Reason: {request.chargeback_info.reason}
 
-Relevant Knowledge Base:
+RELEVANT KNOWLEDGE BASE:
 {context_string}
 
-Note: Use the above information only as factual reference to support the procedural options (cancellation or renewal) you present to the customer. Do not deviate from your core approach."""
+KEY EVIDENCE-BASED ARGUMENTS TO LEVERAGE:
+{response_arguments}
+
+Note: Use the above information to support your procedural guidance. The evidence-based arguments are particularly important - they come directly from our records and can help resolve the dispute. Maintain your established tone and approach."""
 
             agent.set_prompt(prompt=rag_supplement)
 
@@ -191,7 +233,7 @@ Note: Use the above information only as factual reference to support the procedu
                 # Make real phone call and wait for completion
                 conversation_data = phone_caller.make_call_and_wait(
                     agent=agent,
-                    to_number=request.user_info.phone_number,
+                    to_number=phone_number,  # Use phone number from Stripe
                     poll_interval=2,
                     timeout=600,  # 10 minute timeout
                     print_transcript=False,  # Don't print to console in background task

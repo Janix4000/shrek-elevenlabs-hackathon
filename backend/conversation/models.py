@@ -17,10 +17,11 @@ class UserInfo(BaseModel):
 
 
 class ChargebackInfo(BaseModel):
+    charge_id: str = Field(..., min_length=1, description="Stripe charge ID (e.g., ch_xxxxx)")
     product_name: str = Field(..., min_length=1, description="Name of the product")
     reason: str = Field(..., min_length=1, description="Reason for chargeback")
 
-    @field_validator("product_name", "reason")
+    @field_validator("charge_id", "product_name", "reason")
     @classmethod
     def validate_not_empty(cls, v: str) -> str:
         if not v or not v.strip():
@@ -42,6 +43,7 @@ class ConversationRequest(BaseModel):
                         "phone_number": "+1234567890"
                     },
                     "chargeback_info": {
+                        "charge_id": "ch_3SaQFuAITa6PCFHj0dnBlMJP",
                         "product_name": "Shrek Premium Subscription",
                         "reason": "Unauthorized charge"
                     }
