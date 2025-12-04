@@ -73,6 +73,7 @@ class ConversationResult(BaseModel):
     status: ConversationStatus
     transcript: Optional[List[TranscriptEntry]] = None
     duration_seconds: Optional[float] = None
+    summary: Optional[str] = None
     error: Optional[str] = None
 
     model_config = {

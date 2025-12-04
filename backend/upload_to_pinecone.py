@@ -23,7 +23,7 @@ def get_embedding(text):
 
 def upload_orders():
     """Upload orders to Pinecone"""
-    with open('orders.json', 'r') as f:
+    with open('data/orders.json', 'r') as f:
         orders = json.load(f)
     vectors = []
     for order in orders:
@@ -49,7 +49,7 @@ def upload_orders():
 
 def upload_policies():
     """Upload policies to Pinecone"""
-    with open('policies.json', 'r') as f:
+    with open('data/policies.json', 'r') as f:
         policies = json.load(f)
     vectors = []
     for policy in policies:
@@ -68,7 +68,7 @@ def upload_policies():
 
 def upload_dispute_scripts():
     """Upload dispute scripts to Pinecone"""
-    with open('dispute_scripts.json', 'r') as f:
+    with open('data/dispute_scripts.json', 'r') as f:
         scripts = json.load(f)
     vectors = []
     for script in scripts:
@@ -87,7 +87,7 @@ def upload_dispute_scripts():
 
 def upload_resolution_authority():
     """Upload resolution authority to Pinecone"""
-    with open('resolution_authority.json', 'r') as f:
+    with open('data/resolution_authority.json', 'r') as f:
         authorities = json.load(f)
     vectors = []
     for authority in authorities:
@@ -106,7 +106,7 @@ def upload_resolution_authority():
 
 def upload_common_confusions():
     """Upload common confusions to Pinecone"""
-    with open('common_confusions.json', 'r') as f:
+    with open('data/common_confusions.json', 'r') as f:
         confusions = json.load(f)
     vectors = []
     for confusion in confusions:

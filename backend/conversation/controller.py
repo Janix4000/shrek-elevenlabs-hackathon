@@ -1,4 +1,4 @@
-from fastapi import APIRouter, BackgroundTasks, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Query, status
 from typing import List
 from conversation.models import (
     ConversationRequest,
@@ -15,18 +15,22 @@ conversation_service = ConversationService()
 @router.post("/start", response_model=ConversationStartResponse, status_code=status.HTTP_202_ACCEPTED)
 async def start_conversation(
     request: ConversationRequest,
-    background_tasks: BackgroundTasks
+    background_tasks: BackgroundTasks,
+    fake_conv: bool = Query(False, description="Use fake conversation for testing (no real phone call)")
 ) -> ConversationStartResponse:
     """
     Start a new phone conversation with the agent.
     The call will be made in the background and you can check the status later.
+
+    For testing, use ?fake_conv=true to simulate a conversation without making a real phone call.
     """
     conversation_id = conversation_service.create_conversation(request)
 
     background_tasks.add_task(
         conversation_service.run_conversation,
         conversation_id,
-        request
+        request,
+        fake_conv
     )
 
     return ConversationStartResponse(

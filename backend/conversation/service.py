@@ -2,9 +2,11 @@ import os
 import time
 import uuid
 import threading
+import asyncio
 from pathlib import Path
 
 from dotenv import load_dotenv
+from anthropic import AsyncAnthropic
 from conversation.models import (
     ConversationRequest,
     ConversationResult,
@@ -14,11 +16,18 @@ from conversation.models import (
 from elevenlabs_wrapper.phone_caller import PhoneCaller
 from elevenlabs_wrapper.agent import Agent, AgentPromptOverride, AgentConfigOverride
 from elevenlabs_wrapper.transcript_storage import TranscriptStorage
+from elevenlabs_wrapper.transcript_summarizer import TranscriptSummarizer
+from elevenlabs_wrapper.conversation_manager import (
+    ConversationData,
+    TranscriptMessage,
+    ConversationMetadata,
+)
 from rag_service import RAGService
 
 load_dotenv()
 
 agent_id = os.getenv("AGENT_ID")
+anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
 
 
 class ConversationService:
@@ -37,6 +46,67 @@ class ConversationService:
             "chargeback_reason": request.chargeback_info.reason,
         }
 
+    def _create_fake_conversation(
+        self, request: ConversationRequest
+    ) -> ConversationData:
+        """Create a fake conversation for testing purposes."""
+        product_name = request.chargeback_info.product_name
+        first_name = request.user_info.first_name
+        reason = request.chargeback_info.reason
+
+        mock_transcript = [
+            TranscriptMessage(
+                role="agent",
+                message=f"Hello. I'm Ethan, calling about your recent chargeback request for the subscription of {product_name}.",
+                time_in_call_secs=0.0,
+            ),
+            TranscriptMessage(
+                role="user",
+                message="Hello.",
+                time_in_call_secs=7.0,
+            ),
+            TranscriptMessage(
+                role="agent",
+                message=f"I need to inform you that a chargeback is not a valid method for canceling your {product_name} subscription. That action will not be accepted.",
+                time_in_call_secs=11.0,
+            ),
+            TranscriptMessage(
+                role="user",
+                message="Oh no, really? How do I fix it?",
+                time_in_call_secs=20.0,
+            ),
+            TranscriptMessage(
+                role="agent",
+                message=f"You have two options to resolve this. We can proceed with an official cancellation of your {product_name} subscription according to the terms, or you can choose to renew your subscription. Which option would you prefer?",
+                time_in_call_secs=23.0,
+            ),
+            TranscriptMessage(
+                role="user",
+                message="I want to renew my subscription.",
+                time_in_call_secs=36.0,
+            ),
+            TranscriptMessage(
+                role="agent",
+                message=f"Thank you for confirming. Your {product_name} subscription will be renewed.",
+                time_in_call_secs=39.0,
+            ),
+        ]
+
+        mock_metadata = ConversationMetadata(
+            start_time_unix_secs=int(time.time()),
+            call_duration_secs=45,
+            cost=0,
+            termination_reason="user_ended_call",
+        )
+
+        return ConversationData(
+            conversation_id=f"fake_{uuid.uuid4().hex[:8]}",
+            agent_id=agent_id or "fake_agent",
+            status="done",
+            transcript=mock_transcript,
+            metadata=mock_metadata,
+        )
+
     def create_conversation(self, request: ConversationRequest) -> str:
         conversation_id = f"conv_{uuid.uuid4().hex[:12]}"
 
@@ -49,7 +119,10 @@ class ConversationService:
         return conversation_id
 
     def run_conversation(
-        self, conversation_id: str, request: ConversationRequest
+        self,
+        conversation_id: str,
+        request: ConversationRequest,
+        fake_conv: bool = False,
     ) -> None:
         if not agent_id:
             raise ValueError("AGENT_ID must be set in environment variables")
@@ -57,15 +130,24 @@ class ConversationService:
         phone_caller = PhoneCaller()
 
         # Query RAG for relevant context before making the call
+        print(f"🔍 Querying RAG for: {request.chargeback_info.reason} - {request.chargeback_info.product_name}")
         rag_context = self.rag_service.query_context(
             chargeback_reason=request.chargeback_info.reason,
             product_name=request.chargeback_info.product_name,
             customer_name=f"{request.user_info.first_name} {request.user_info.last_name}",
-            top_k=10  # Get top 10 most relevant results
+            top_k=10,  # Get top 10 most relevant results
         )
 
         # Format the context for the agent
         context_string = self.rag_service.format_context_for_agent(rag_context)
+
+        # Log what RAG found
+        print(f"✅ RAG Results:")
+        print(f"   - {len(rag_context['dispute_scripts'])} dispute scripts")
+        print(f"   - {len(rag_context['policies'])} policies")
+        print(f"   - {len(rag_context['orders'])} orders")
+        print(f"   - {len(rag_context['resolution_authority'])} resolution authorities")
+        print(f"   - Context length: {len(context_string)} chars")
 
         # Create dynamic variables with user info
         dynamic_variables = self._create_dynamic_variables(request)
@@ -76,41 +158,44 @@ class ConversationService:
             dynamic_variables=dynamic_variables,
         )
 
-        # Add the RAG context to the agent's prompt
+        # Add RAG context as supplementary information to the agent
+        # This appends to the base prompt configured in ElevenLabs dashboard
         if context_string:
-            agent.set_prompt(
-                prompt=f"""You are a helpful customer service agent for Chargeback Shield, calling to resolve a customer dispute before it becomes a chargeback.
+            rag_supplement = f"""
 
-CUSTOMER CONTEXT:
-- Name: {request.user_info.first_name} {request.user_info.last_name}
-- Product: {request.chargeback_info.product_name}
+---
+SUPPLEMENTARY INFORMATION FOR THIS CALL
+(Use this information to support your procedural guidance, but maintain your established tone and approach)
+
+Customer Details:
+- Full Name: {request.user_info.first_name} {request.user_info.last_name}
 - Dispute Reason: {request.chargeback_info.reason}
 
-KNOWLEDGE BASE (Use this information to help resolve the dispute):
+Relevant Knowledge Base:
 {context_string}
 
-IMPORTANT GUIDELINES:
-1. Be empathetic and understanding - the customer is frustrated
-2. Listen carefully to their specific concern
-3. Use the dispute scripts and policies above to guide your responses
-4. Offer immediate solutions within your authority
-5. Always aim to resolve the issue and prevent the chargeback
-6. If you can't resolve it, escalate appropriately
+Note: Use the above information only as factual reference to support the procedural options (cancellation or renewal) you present to the customer. Do not deviate from your core approach."""
 
-Your goal is to turn this frustrated customer into a satisfied one through a helpful, solution-focused conversation."""
-            )
+            agent.set_prompt(prompt=rag_supplement)
 
         start_time = time.time()
 
         try:
-            # Make phone call and wait for completion
-            conversation_data = phone_caller.make_call_and_wait(
-                agent=agent,
-                to_number=request.user_info.phone_number,
-                poll_interval=2,
-                timeout=600,  # 10 minute timeout
-                print_transcript=False,  # Don't print to console in background task
-            )
+            if fake_conv:
+                # Use fake conversation for testing
+                print(f"🎭 Starting fake conversation (5 second delay)...")
+                time.sleep(5)  # Simulate conversation delay
+                conversation_data = self._create_fake_conversation(request)
+                print(f"✅ Fake conversation completed")
+            else:
+                # Make real phone call and wait for completion
+                conversation_data = phone_caller.make_call_and_wait(
+                    agent=agent,
+                    to_number=request.user_info.phone_number,
+                    poll_interval=2,
+                    timeout=600,  # 10 minute timeout
+                    print_transcript=False,  # Don't print to console in background task
+                )
 
             end_time = time.time()
             duration = end_time - start_time
@@ -128,12 +213,29 @@ Your goal is to turn this frustrated customer into a satisfied one through a hel
             # Save transcript to storage
             self.storage.save_transcript(conversation_data, filename=conversation_id)
 
+            # Generate summary using TranscriptSummarizer
+            summary = None
+            if anthropic_api_key:
+                try:
+                    summarizer = TranscriptSummarizer()
+                    anthropic_client = AsyncAnthropic(api_key=anthropic_api_key)
+                    summary = asyncio.run(
+                        summarizer.summarize(
+                            client=anthropic_client,
+                            transcript=conversation_data.transcript,
+                        )
+                    )
+                except Exception as e:
+                    # Log error but don't fail the whole conversation
+                    print(f"Warning: Failed to generate summary: {e}")
+
             with self._lock:
                 self._conversations[conversation_id] = ConversationResult(
                     conversation_id=conversation_id,
                     status=ConversationStatus.COMPLETED,
                     transcript=transcript,
                     duration_seconds=conversation_data.metadata.call_duration_secs,
+                    summary=summary,
                 )
 
         except Exception as e:
