@@ -149,29 +149,24 @@ class ConversationService:
             dynamic_variables=dynamic_variables,
         )
 
-        # Add the RAG context to the agent's prompt
+        # Add the RAG context as additional context to the agent's base prompt
+        # This appends to the ElevenLabs dashboard prompt instead of overriding it
         if context_string:
-            agent.set_prompt(
-                prompt=f"""You are a helpful customer service agent for Chargeback Shield, calling to resolve a customer dispute before it becomes a chargeback.
+            rag_context_addition = f"""
 
-CUSTOMER CONTEXT:
+--- CONTEXT FOR THIS CALL ---
+
+CUSTOMER INFORMATION:
 - Name: {request.user_info.first_name} {request.user_info.last_name}
 - Product: {request.chargeback_info.product_name}
 - Dispute Reason: {request.chargeback_info.reason}
 
-KNOWLEDGE BASE (Use this information to help resolve the dispute):
+RELEVANT KNOWLEDGE BASE:
 {context_string}
 
-IMPORTANT GUIDELINES:
-1. Be empathetic and understanding - the customer is frustrated
-2. Listen carefully to their specific concern
-3. Use the dispute scripts and policies above to guide your responses
-4. Offer immediate solutions within your authority
-5. Always aim to resolve the issue and prevent the chargeback
-6. If you can't resolve it, escalate appropriately
+Use the above information to help resolve this specific dispute effectively."""
 
-Your goal is to turn this frustrated customer into a satisfied one through a helpful, solution-focused conversation."""
-            )
+            agent.set_prompt(prompt=rag_context_addition)
 
         start_time = time.time()
 
