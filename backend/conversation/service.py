@@ -23,6 +23,7 @@ from elevenlabs_wrapper.conversation_manager import (
     ConversationMetadata,
 )
 from rag_service import RAGService
+from stripe_integration.dispute_response_generator import DisputeResponseGenerator
 
 load_dotenv()
 
@@ -36,6 +37,7 @@ class ConversationService:
         self._lock = threading.Lock()
         self.storage = TranscriptStorage(storage_dir=storage_dir)
         self.rag_service = RAGService()
+        self.dispute_response_generator = DisputeResponseGenerator()
 
     def _create_dynamic_variables(self, request: ConversationRequest) -> dict[str, str]:
         return {
